@@ -30,3 +30,7 @@
 *.exe
 *.out
 *.app
+
+# PIO & VSCode Environment
+.pio
+.vscode
