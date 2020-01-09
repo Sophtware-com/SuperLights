@@ -9,9 +9,15 @@
 #include "Menu.h"
 
 // PIN ASSIGNMENTS
-#define PWR_LED_PIN 8
+#define PWR_LED_PIN   8
+#define CHRG_LED_PIN  11
+#define STDBY_LED_PIN 12
 
-#define  PWR_EN_PIN  4
+#define CHRG_STAT_PIN  9 
+#define STDBY_STAT_PIN 10
+
+#define  PWR_EN_PIN  4 // VLED
+
 #define  SUPPLY_TYPE 13 // This is also the LED pin on the UNO.
 
 // BUTTON MENU

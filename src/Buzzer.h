@@ -3,7 +3,7 @@
 
 #include <Arduino.h>
 
-#define BUZZER_PIN 9
+#define BUZZER_PIN 6
 
 class Buzzer
 {
