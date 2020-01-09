@@ -34,3 +34,4 @@
 # PIO & VSCode Environment
 /.pio/*
 /.vscode/*
+.vscode/launch.json
