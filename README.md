@@ -11,7 +11,7 @@ Below is the list of Arduino devices the code is written toward. A minium of an 
 
 Super Lights is designed with 2 buttons, 3 potentiometers, 1 switch, 1 RGB LED, a USB port, and an MR30 connector for the LED lights. 
 
-The switch is used to power the Arduino and the LEDs via an DPST style switch. When turned off, the USB port can be used to charge the onboard battery. When off, and a USB cable is plugged in, the Arduino and the onboard charging chip will reveive power. A pin on the processor will indicate if the unit is in a charging state and the processor will handle LED display for the different charging states: standby and charged.
+The switch is used to power the Arduino and the LEDs via an DPST style switch. When turned off, the USB port can be used to charge the onboard battery. When off, and a USB cable is plugged in, the Arduino and the onboard charging chip will receive power. A pin on the processor will indicate if the unit is in a charging state and the processor will handle LED display for the different charging states: standby and charged.
 
 The USB port is used for programming and charging the onboard battery. The Arduino used may include the FTDI or CH340 USB to serial chip, but this should not be a concern for programming since the latest version of Mac and Windows include both drivers now.
 
@@ -27,7 +27,7 @@ To enter LED initialization mode, with the unit off, turn all 3 knobs counter cl
 
 Alternate settings for navigating patterns can be set using a programming sequence at start up. This can be set based in the user's preferences.
 
-1. **Normal Operation - Mode 1**
+1. **Mode 1 - Normal Operation**
 
     #### Description
     ---
@@ -35,19 +35,13 @@ Alternate settings for navigating patterns can be set using a programming sequen
 
     #### How to Set this Mode
     ---
-    Turn the Brightness knob counter clockwise until it stops, then turn the flash rate and color/size knobs clockwise until they stop. hold down both the group and pattern buttons and turn the unit on. When the lights display, let go of both buttons. The mode has now been set.
+    - &#x21ba; *Brightness* knob full counter clockwise
+    - &#x21ba; *Flash Rate* knob full counter clockwise
+    - &#x21bb; *Color/Size* knob full clockwise
+    - &#x21a7; Hold down *Pattern* and *Group* and switch ON.
+    - &#x2611; The mode is set and displayed as segments matching the number.
 
-1. **Continuous Pattern Button - Mode 2**
-
-    #### Description
-    ---
-    In this mode the group button functions as in normal operation mode. The pattern button, though, will continue to the next group automatically without pushing the group button. Meaning the pattern button doesn't loop when reaching the end, but continues to the next group. Holding the pattern button for 2 seconds will reset to the first pattern in the first group.
-
-    #### How to Set this Mode
-    ---
-    Turn the Brightness and flash rate knob counter clockwise until they stop, then turn the color/size knob clockwise until it stops. hold down both the group and pattern buttons and turn the unit on. When the lights display, let go of both buttons. The mode has now been set.
-
-1. **Favorite Patterns Looping - Mode 3**
+1. **Mode 2 - Continuous Patterns**
 
     #### Description
     ---
@@ -55,4 +49,38 @@ Alternate settings for navigating patterns can be set using a programming sequen
 
     #### How to Set this Mode
     ---
-    Turn the Brightness and flash rate knob counter clockwise until they stop, then turn the color/size knob clockwise until it stops. hold down both the group and pattern buttons and turn the unit on. When the lights display, let go of both 
+    - &#x21ba; *Brightness* knob full counter clockwise
+    - &#x21bb; *Flash Rate* knob full clockwise
+    - &#x21ba; *Color/Size* knob full counter clockwise
+    - &#x21a7; Hold down *Pattern* and *Group* and switch ON.
+    - &#x2611; The mode is set and displayed as segments matching the number.
+
+1. **Mode 3 - Favorite Patterns Looping**
+
+    #### Description
+    ---
+    In this mode the lights will cycle through the last pattern selected in each group (except the strobe group). The pattern button will pause and un-pause the cycling. So if you would like to stop on one pattern you can press the pattern button to pause the cycle. Pushing the pattern button again will resume the cycling. The group button will toggle from cycling through patterns to entering the strobe patterns. Once in the strobe patterns, the pattern button selectes the strobe pattern displaying. Pressing the group button again toggles back to pattern cycling. The flash rate knob while in the pattern cycling controls how long each pattern is displayed before moving on to the next pattern in sequence.
+
+    #### How to Set this Mode
+    ---
+    - &#x21ba; *Brightness* knob full counter clockwise
+    - &#x21bb; *Flash Rate* knob full clockwise
+    - &#x21bb; *Color/Size* knob full clockwise
+    - &#x21a7; Hold down *Pattern* and *Group* and switch ON.
+    - &#x2611; The mode is set and displayed as segments matching the number.
+
+1. **Mode 4 - All Patterns Looping**
+
+    #### Description
+    ---
+    This mode is the same as the *Favorite Pattern Looping* mode except ALL the patterns are looped through in each group in sequence, again skipping the strobe pattern group. 
+
+    #### How to Set this Mode
+    ---
+    - &#x21bb; *Brightness* knob full clockwise
+    - &#x21ba; *Flash Rate* knob full counter clockwise
+    - &#x21ba; *Color/Size* knob full counter clockwise
+    - &#x21a7; Hold down *Pattern* and *Group* and switch ON.
+    - &#x2611; The mode is set and displayed as segments matching the number.
+
+    
