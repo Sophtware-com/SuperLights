@@ -83,4 +83,8 @@ Alternate settings for navigating patterns can be set using a programming sequen
     - &#x21a7; Hold down *Pattern* and *Group* and switch ON.
     - &#x2611; The mode is set and displayed as segments matching the number.
 
-    
+## Charging the Battery
+
+In order to charge the internal battery, the unit must be switched off. Once switched off, connecting a USB cable to the unit will initiate charging. The power LED will display BLUE when charging, and GREEN when complete (or in standby mode if left plugged into a charger or the battery is already fully charged).
+
+The internal 10,000mAh battery can take up to 10 hours to charge when supplied with a USB port capable of delivering 1 amp of power. If the USB port cannot supply the full 1 amp, charging such a large battery can take several days to a week to complete charging. Make sure to use only ports capable of suppling 1 amp of current. If available, the unit can use up to 1.2 amp to charge.
