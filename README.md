@@ -1,5 +1,5 @@
 # Super Lights
-These lights are a great way to have fun at twilight on your paramotor, impress your friends, and fly legally during twilight (strobe pattern required). This set comes pre-programmed with lot of different patterns, and most of them can be adjusted to create infinte variety.
+These lights are a great way to have fun at twilight on your paramotor, impress your friends, and fly legally during twilight (included strobe pattern). This set comes pre-programmed with lot of different patterns, and most of them can be adjusted to create infinte variety.
 
 ## Device Platforms
 Below is the list of Arduino devices the code is written toward. A minium of an ATMega328 processor is required due to the size of the code. Anything bigger is a plus, but the LED library timings may need to be adjusted for faster processors.
@@ -9,15 +9,15 @@ Below is the list of Arduino devices the code is written toward. A minium of an 
 
 ## How Super Lights Work
 
-Super Lights is designed with 2 buttons, 3 potentiometers, 1 switch, 1 RGB LED, a USB port, and an MR30 connector for the LED lights. 
+Super Lights is designed with 2 buttons, 3 potentiometers, 1 switch, 1 RGB LED, a USB port, and two MR30 connectors for the LED lights. 
 
 The switch is used to power the Arduino and the LEDs via an DPST style switch. When turned off, the USB port can be used to charge the onboard battery. When off, and a USB cable is plugged in, the Arduino and the onboard charging chip will receive power. A pin on the processor will indicate if the unit is in a charging state and the processor will handle LED display for the different charging states: standby and charged.
 
 The USB port is used for programming and charging the onboard battery. The Arduino used may include the FTDI or CH340 USB to serial chip, but this should not be a concern for programming since the latest version of Mac and Windows include both drivers now.
 
-The 2 buttons are used for both user programming of settings and navigating the patterns and groups of patterns. When in running mode, the group button moves between the groups of patterns (like flags or holiday lights), while the pattern button moves between the individual patterns in the group (like from the American flag to the Mexican flag). Both of these buttons have an alternate feature when held down for 2 seconds or more. Doing this resets either the groups or the patterns to the first one in the sequence.
+The 2 buttons are used for both user programming of settings and navigating the patterns and groups of patterns. When in running mode, the group button moves between the groups of patterns (like flags or holiday lights), while the pattern button moves between the individual patterns in the group (like from the American flag to the Mexican flag). Both of these buttons have an alternate feature when held down for 2 seconds or more. Doing this resets either the groups or the patterns to the first one in the sequence. This can change based on the Mode the lights are set to via programming.
 
-The 3 potentiometers control the brightness, flashing rate, and color or size within particular patterns. The brightness is controlled globally and affects the LEDs immediately and this setting is not saved to internal EEPROM. The flash rate and color/size knob settings are stored per individual pattern and the values are saved when moving off the pattern or turning off the unit.
+The 3 potentiometers control the brightness, flashing rate, and color or size within particular patterns. The brightness is controlled globally and affects the LEDs immediately and this setting is not saved to internal EEPROM. The flash rate and color/size knob settings are stored per individual pattern and the values are saved when moving off the pattern or turning off the unit. The brightness knob does not work on all patterns, especially patterns that vary the birghtness already.  
 
 ## LED Initialization Mode
 

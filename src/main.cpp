@@ -28,6 +28,13 @@ volatile unsigned long _groupButtonPushedTime = 0;
 volatile bool _patternButtonBeep = false;
 volatile unsigned long _patternButtonPushedTime = 0;
 
+// MODES
+#define MODE_0_INIT       0
+#define MODE_1_NORMAL     1
+#define MODE_2_CONTINUOUS 2
+#define MODE_3_FAVORTIE   3
+#define MODE_4_ALL        4
+unsigned int _mode = MODE_1_NORMAL;
 
 // PROTOTYPES
 void groupButtonRisingISR();
@@ -104,29 +111,38 @@ bool bothButtonsHeld()
 
 void setup()
 {
-    // initialize the LED pin as an output:
+    // Initialize pins:
     pinMode(PWR_LED_PIN, OUTPUT);
+    pinMode(CHRG_LED_PIN, OUTPUT);
+    pinMode(STDBY_LED_PIN, OUTPUT);
+    pinMode(CHRG_STAT_PIN, INPUT);
+    pinMode(STDBY_STAT_PIN, INPUT);
 
-    // Are we in CHARGING mode...
     pinMode(PWR_EN_PIN, INPUT);
 
     _serialDebug.begin();
     _serialDebug.info("SUPER LED Lights");
-    _serialDebug.info("Rev 2.1c");
+    _serialDebug.info("Rev 4.0");
     _serialDebug.info();
 
     _buzzer.begin();
 
+    // Are we in CHARGING mode...
     if (digitalRead(PWR_EN_PIN) == LOW)
     {
         digitalWrite(PWR_LED_PIN, LOW);
         _buzzer.beep();
 
-        // We just need to enable the charge chip and turn off our
-        // power led indicator, then let the charger do it's thing.
-        set_sleep_mode(SLEEP_MODE_PWR_DOWN);
-        sleep_enable();
-        sleep_mode();
+        // Monitor the charging functions and report to the RGB
+        // LED the status of the charging. Blue=charging, Green=done.
+        while (1)
+        {
+            // The status pin are held high with pullup resistors and
+            // are pulled low with that charging function is enabled.
+            digitalWrite(CHRG_LED_PIN, digitalRead(CHRG_STAT_PIN) ? LOW : HIGH);
+            digitalWrite(STDBY_LED_PIN, digitalRead(STDBY_STAT_PIN) ? LOW : HIGH);
+            delay(1000);
+        }
     }
     else
     {

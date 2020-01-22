@@ -5,8 +5,8 @@
 #include "SerialDebug.h"
 
 #define SPEED_VAL_PIN      A0
-#define COLOR_VAL_PIN      A1
-#define BRIGHT_VAL_PIN     A2
+#define BRIGHT_VAL_PIN     A1
+#define COLOR_VAL_PIN      A2
 #define BATTERY_VAL_PIN    A3
 
 class SensorRead
