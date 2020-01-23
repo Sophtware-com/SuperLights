@@ -28,6 +28,15 @@ volatile unsigned long _groupButtonPushedTime = 0;
 volatile bool _patternButtonBeep = false;
 volatile unsigned long _patternButtonPushedTime = 0;
 
+// MODES
+#define MODE_0_INIT       0
+#define MODE_1_NORMAL     1
+#define MODE_2_CONTINUOUS 2
+#define MODE_3_FAVORTITE  3
+#define MODE_4_LOOPING    4
+#define MODE_5_STOBES     5
+
+unsigned int _mode = MODE_1_NORMAL;
 
 // PROTOTYPES
 void groupButtonRisingISR();
@@ -138,10 +147,33 @@ void setup()
     _color.begin();
     _bright.begin();
 
+    // Set the MODE here.
+    if (bothButtonsHeld())
+    {
+        int brightPos = _bright.knobPosition();
+        int speedPos = _speed.knobPosition();
+        int colorPos = _color.knobPosition();
+
+        if (brightPos == POS_LEFT && speedPos == POS_LEFT && colorPos == POS_LEFT)
+            _mode = MODE_0_INIT;
+        else if (brightPos == POS_LEFT && speedPos == POS_LEFT && colorPos == POS_RIGHT)
+            _mode = MODE_1_NORMAL;
+        else if (brightPos == POS_LEFT && speedPos == POS_RIGHT && colorPos == POS_LEFT)
+            _mode = MODE_2_CONTINUOUS;
+         else if (brightPos == POS_LEFT && speedPos == POS_RIGHT && colorPos == POS_RIGHT)
+            _mode = MODE_3_FAVORTITE;
+         else if (brightPos == POS_RIGHT && speedPos == POS_LEFT && colorPos == POS_LEFT)
+            _mode = MODE_4_LOOPING;
+         else if (brightPos == POS_RIGHT && speedPos == POS_LEFT && colorPos == POS_RIGHT)
+            _mode = MODE_5_STOBES;
+     }
+
     _ringConfig.begin();
-    if (!_ringConfig.isInitialized() || bothButtonsHeld())
+    if (!_ringConfig.isInitialized() || _mode == MODE_0_INIT)
     {
         _ringConfig.init();
+        _mode = MODE_1_NORMAL;
+
         delay(200); // Give the user time to release the button.
     }
 
