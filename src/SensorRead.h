@@ -9,6 +9,13 @@
 #define COLOR_VAL_PIN      A2
 #define BATTERY_VAL_PIN    A3
 
+// Cardinal positions of the knobs: full left, middle, full right.
+#define POS_UNKNOWN -2
+#define POS_LEFT    -1
+#define POS_CENTER   0
+#define POS_RIGHT    1
+#define POS_RANGE   16
+
 class SensorRead
 {
 private:
@@ -95,6 +102,24 @@ public:
         mValue = (mLastRead + average()) / 2;
 
         return min(((uint16_t)mValue), maxValue);
+    }
+
+    int knobPosition()
+    {
+        // The knob is in the middle (12 o'clock, within 16 each side).
+        int pos = POS_UNKNOWN;
+        uint16_t value = read();
+
+        if (value < POS_RANGE)
+            pos = POS_LEFT;
+        else if (value > (128-POS_RANGE) && value < (128+POS_RANGE))
+            pos = POS_CENTER;
+        else if (value > 254-POS_RANGE)
+            pos = POS_RIGHT;
+
+        return pos;
+
+        return value > 112 && value < 144;
     }
 
     uint16_t lastRead()

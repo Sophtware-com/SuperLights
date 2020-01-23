@@ -32,6 +32,8 @@
 *.app
 
 # PIO & VSCode Environment
-/.pio/*
-/.vscode/*
+.pio/*
+.vscode/*
+.vscode/launch.json
+.vscode/c_cpp_properties.json
 .vscode/launch.json

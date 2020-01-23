@@ -83,6 +83,20 @@ Alternate settings for navigating patterns can be set using a programming sequen
     - &#x21a7; Hold down *Pattern* and *Group* and switch ON.
     - &#x2611; The mode is set and displayed as segments matching the number.
 
+1. **Mode 5 - Aircraft Strobes Only**
+
+    #### Description
+    ---
+    In this mode only the strobe patterns are available. The pattern button switches strobe patterns as normal, but the group button does nothing. 
+
+    #### How to Set this Mode
+    ---
+    - &#x21bb; *Brightness* knob full clockwise
+    - &#x21ba; *Flash Rate* knob full counter clockwise
+    - &#x21ba; *Color/Size* knob full clockwise
+    - &#x21a7; Hold down *Pattern* and *Group* and switch ON.
+    - &#x2611; The mode is set and displayed as segments matching the number.
+
 ## Charging the Battery
 
 In order to charge the internal battery, the unit must be switched off. Once switched off, connecting a USB cable to the unit will initiate charging. The power LED will display BLUE when charging, and GREEN when complete (or in standby mode if left plugged into a charger or the battery is already fully charged).
