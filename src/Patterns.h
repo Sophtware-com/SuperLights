@@ -21,6 +21,7 @@ enum patternGroupType
     RAINBOW_GROUP,
     COLOR_GROUP,
     CYCLE_GROUP,
+    CYCLE_ALL_GROUP,
 //    MORSE_CODE_GROUP,
 //    UTILITY_GROUP,
     NUMBER_OF_GROUPS
@@ -175,6 +176,7 @@ public:
     uint8_t initializeTopQuarter(uint8_t value);
 
     void cycleGroup();
+    void cycleAllGroup();
 
     // UTILITY_GROUP
     void utilityGroup();
@@ -183,6 +185,7 @@ public:
     void potLevels(uint8_t pattern);
     void ledTest();
     void ledTest(uint8_t wait);
+    void displayMode(uint8_t mode, unsigned long wait);
 
     // STROBE_GROUP
     void strobeGroup();

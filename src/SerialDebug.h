@@ -3,7 +3,7 @@
 
 #include <Arduino.h>
 
-#define USE_SERIAL
+//#define USE_SERIAL
 
 // Define the debug level for the entire application.
 // If you're on a Leonardo and NOT using serial, undefine USE_SERIAL in

@@ -107,6 +107,8 @@ const uint8_t Patterns::groupPatternCount(patternGroupType group)
             return 8;
         case CYCLE_GROUP:
             return 1;
+        case CYCLE_ALL_GROUP:
+            return 1;
         // case MORSE_CODE_GROUP:
         //     return 3;
         // case UTILITY_GROUP:
@@ -128,6 +130,7 @@ const char* Patterns::groupName(uint8_t group)
         "RAINBOW_GROUP",
         "COLOR_GROUP",
         "CYCLE_GROUP",
+        "CYCLE_ALL_GROUP",
         "MORSE_CODE_GROUP",
         "UTILITY_GROUP",
     };
@@ -218,7 +221,19 @@ const char* Patterns::patternName(uint8_t group, uint8_t pattern)
             "9"
         },
         { // CYCLE_GROUP
-            "CYCLE",
+            "cycleFavorites",
+            "1",
+            "2",
+            "3",
+            "4",
+            "5"
+            "6",
+            "7",
+            "8",
+            "9"
+        },
+        { // CYCLE_ALL_GROUP
+            "cycleAll",
             "1",
             "2",
             "3",
@@ -290,6 +305,9 @@ void Patterns::displayPattern(uint8_t group)
         case CYCLE_GROUP:
             cycleGroup();
             break;
+        case CYCLE_ALL_GROUP:
+            cycleAllGroup();
+            break;
         // case MORSE_CODE_GROUP:
         //     morseCodeGroup();
         //     break;
@@ -303,10 +321,10 @@ void Patterns::cycleGroup()
 {
     static int groupIndex = -1;
     static patternGroupType group;
-    static uint8_t pattern = 0;
+    static uint8_t pattern = -1;
     static unsigned long timer = 0;
 
-    if (millis() > timer)
+    if (pattern == -1 || (_pattern == 0 && millis() > timer))
     {
         groupIndex++;
 
@@ -340,6 +358,40 @@ void Patterns::cycleGroup()
             colorGroup(pattern); break;
         default:
             flagGroup(1); break; // FlatTop flag...
+    }
+}
+
+void Patterns::cycleAllGroup()
+{
+    static uint8_t group = 1;
+    static uint8_t pattern = -1;
+    static unsigned long timer = 0;
+
+    if (pattern == -1 || (_pattern == 0 && millis() > timer))
+    {
+        pattern = (pattern == _patterns.groupPatternCount((patternGroupType)group)-1) ? 0 : pattern + 1;
+
+        if (pattern == 0)
+            group = (group < (uint8_t)patternGroupType::COLOR_GROUP) ? group + 1 : 0;
+
+        _menu.restorePattern(group, pattern);
+
+        timer = millis() + 6000;// 10 seconds
+    }
+
+    switch (group) {
+        case FLAG_GROUP:
+            flagGroup(pattern); break;
+        case HOLIDAY_GROUP:
+            holidayGroup(pattern); break;
+        case EMERGENCY_GROUP:
+            emergencyGroup(pattern); break;
+        case RAINBOW_GROUP:
+            rainbowGroup(pattern); break;
+        case COLOR_GROUP:
+            colorGroup(pattern); break;
+        default:
+            flagGroup(0); break; // American flag on Angel frame.
     }
 }
 
@@ -415,6 +467,13 @@ void Patterns::ledTest(uint8_t wait)
     show(wait);
 }
 
+void Patterns::displayMode(uint8_t mode, unsigned long wait)
+{
+    setPixelColor(0, red(), 4*mode, DirectionType::CW, 4, 2);
+    show(wait);
+    clear();
+}
+
 //
 //  STROBE GROUP
 //
@@ -441,55 +500,65 @@ void Patterns::strobeGroup(uint8_t pattern)
 
 void Patterns::doubleStrobe()
 {
-    uint8_t brightness = _menu.currentBrightness();
+    static uint8_t seg = 0;
 
-    for (int i=0; i<2; i++)
+    seg = (seg < 10) ? seg + 1 : 1;
+
+    if (seg < 3)
     {
         uint8_t width = max(1,(uint8_t)(((float)_menu.currentColor() * ((float)_ring.numPixels()/254.0)) / 2.0));
 
-        setPixelColor(0, white(brightness), width);
-        setPixelColor(0, white(brightness), width, CCW);
+        setPixelColor(0, white(), width);
+        setPixelColor(0, white(), width, CCW);
         show(50);
         clear();
         show(50);
     }
-
-    delay(800);
+    else
+    {
+        delay(100);
+    }
 }
 
 void Patterns::tripleStrobe()
 {
-    uint8_t brightness = _menu.currentBrightness();
+    static uint8_t seg = 0;
 
-    for (int i=0; i<3; i++)
+    seg = (seg < 10) ? seg + 1 : 1;
+
+    if (seg < 4)
     {
         uint8_t width = max(1,(uint8_t)(((float)_menu.currentColor() * ((float)_ring.numPixels()/254.0)) / 2.0));
 
-        setPixelColor(0, white(brightness), width);
-        setPixelColor(0, white(brightness), width, CCW);
+        setPixelColor(0, white(), width);
+        setPixelColor(0, white(), width, CCW);
         show(50);
         clear();
         show(50);
     }
-
-    delay(700);
+    else
+    {
+        delay(100);
+    }
 }
 
 void Patterns::aircraftStrobe()
 {
-    uint8_t brightness = _menu.currentBrightness();
+    static uint8_t seg = 0;
 
-    uint8_t topOffset = _ring.bottomOffset();
+    seg = (seg < 10) ? seg + 1 : 1;
 
-    setPixelColor(0, red(brightness), _ring.halfPixels());
-    setPixelColor(0, green(brightness), _ring.halfPixels(), CCW);
+    setPixelColor(0, red(), _ring.halfPixels());
+    setPixelColor(0, green(), _ring.halfPixels(), CCW);
 
-    for (int i=0; i<3; i++)
+    if (seg < 3)
     {
-        setPixelColor(0, white(brightness), 12+topOffset);
-        setPixelColor(0, white(brightness), 12+topOffset, CCW);
-        setPixelColor(_ring.halfPixels()-12, white(brightness), 12);
-        setPixelColor(_ring.halfPixels()-12, white(brightness), 12, CCW);
+        uint8_t topOffset = _ring.bottomOffset();
+    
+        setPixelColor(0, white(), 12+topOffset);
+        setPixelColor(0, white(), 12+topOffset, CCW);
+        setPixelColor(_ring.halfPixels()-12, white(), 12);
+        setPixelColor(_ring.halfPixels()-12, white(), 12, CCW);
         show(50);
         setPixelColor(0, 0, 12+topOffset);
         setPixelColor(0, 0, 12+topOffset, CCW);
@@ -497,8 +566,10 @@ void Patterns::aircraftStrobe()
         setPixelColor(_ring.halfPixels()-12, 0, 12, CCW);
         show(50);
     }
-
-    delay(700);
+    else
+    {
+        delay(100);
+    }
 }
 
 //

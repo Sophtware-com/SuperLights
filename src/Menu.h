@@ -21,7 +21,9 @@ public:
     bool isInitialized();
 
     uint8_t lastGroup() { return mLastGroup; }
+    void lastGroup(uint8_t group) { mLastGroup = group; }
     uint8_t lastPattern() { return mLastPattern; }
+    void lastPattern(uint8_t pattern) { mLastPattern = pattern; }
 
     bool groupChanged();
     bool patternChanged();
@@ -35,9 +37,10 @@ public:
     uint8_t readLastPattern();
     Pattern readLastPatternData();
 
-    void updateLastGroup();
+    void updateLastGroup(bool displayLastPattern);
     void updateLastPattern();
 
+    void restorePattern(uint8_t group, uint8_t pattern);
     uint8_t defaultPattern(uint8_t group);
 
     uint8_t currentSpeed();

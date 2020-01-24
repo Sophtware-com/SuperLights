@@ -24,8 +24,7 @@ volatile uint8_t _pattern;
 //   | 01 - NumPixels >> 1 (div 2)
 //   | 02 - TopCenter
 //   | 03 - TopQuarter
-//   | 04 - Direction (CW=0, CCW=1)
-//   ⌞ 05..08 - Resistor ratio (float)
+//   ⌞ 04 - Direction (CW=0, CCW=1)
 //
 //   -PATTERN GROUPS-
 //   ⌜ 00 - MAGIC_NUMBER
@@ -86,10 +85,6 @@ bool Menu::isInitialized()
 
 void Menu::begin(uint16_t writeOffset)
 {
-    // initialize the pushbutton pin as an input:
-    pinMode(GROUP_BUTTON_PIN, INPUT);
-    pinMode(PATTERN_BUTTON_PIN, INPUT);
-
     // Where to start in memory for this data.
     mWriteOffset = writeOffset;
 
@@ -137,6 +132,15 @@ void Menu::begin(uint16_t writeOffset)
     }
 }
 
+void Menu::restorePattern(uint8_t group, uint8_t pattern)
+{
+    uint16_t offset = patternOffset(pattern, group);
+    mLastData.mSpeed = EEPROM.read(patternSpeedOffset(offset));
+    mLastData.mColor = EEPROM.read(patternColorOffset(offset));
+
+    _speed.savedState();
+    _color.saveState();
+}
 
 uint8_t Menu::defaultPattern(uint8_t group)
 {
@@ -214,12 +218,12 @@ void Menu::writeLastPatternData()
 }
 
 
-void Menu::updateLastGroup()
+void Menu::updateLastGroup(bool displayLastPattern)
 {
     _serialDebug.info("|-updateLastGroup");
 
     mLastGroup = _group;
-    mLastPattern = _pattern = readLastPattern();
+    mLastPattern = _pattern = (displayLastPattern) ? readLastPattern() : _pattern;
 
     _serialDebug.infoStr("|--", _patterns.groupName(mLastGroup));
     _serialDebug.infoStr("|--", _patterns.patternName(mLastGroup, mLastPattern));

@@ -1,4 +1,4 @@
-#define MAGIC_NUMBER       153  // Radom number for EEPROM
+#define MAGIC_NUMBER       177  // Radom number for EEPROM
 
 #define GROUP_BUTTON_PIN   2
 #define PATTERN_BUTTON_PIN 3

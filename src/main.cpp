@@ -36,13 +36,49 @@ volatile unsigned long _patternButtonPushedTime = 0;
 #define MODE_4_LOOPING    4
 #define MODE_5_STOBES     5
 
-unsigned int _mode = MODE_1_NORMAL;
+uint8_t _mode = MODE_1_NORMAL;
 
 // PROTOTYPES
 void groupButtonRisingISR();
 void groupButtonFallingISR();
 void patternButtonRisingISR();
 void patternButtonFallingISR();
+
+uint8_t nextGroup()
+{
+    if (_mode == MODE_3_FAVORTITE)
+        return (uint8_t)(_group == patternGroupType::STROBE_GROUP) ? patternGroupType::CYCLE_GROUP : patternGroupType::STROBE_GROUP;
+
+    if (_mode == MODE_4_LOOPING)
+        return (uint8_t)(_group == patternGroupType::STROBE_GROUP) ? patternGroupType::CYCLE_ALL_GROUP : patternGroupType::STROBE_GROUP;
+
+    if (_mode == MODE_5_STOBES)
+        return (uint8_t)(patternGroupType::STROBE_GROUP);
+
+    // We do -2 to skip the cycle groups in normal mode.
+    return (_group < (uint8_t)patternGroupType::COLOR_GROUP) ? _group + 1 : 0;
+}
+
+uint8_t nextPattern()
+{
+    if (_mode == MODE_2_CONTINUOUS)
+    {
+        uint8_t p = (_pattern == _patterns.groupPatternCount((patternGroupType)_group)-1) ? 0 : _pattern + 1;
+
+        // Here we would have normally just looped to the start of this group, but in this mode
+        // we skip to the next group so the pattern button moves through ALL patterns. You can
+        // still use the group button to skip groups though.
+        if (p == 0)
+            _group = nextGroup();
+
+        return p;
+    }
+
+    if (_mode == MODE_3_FAVORTITE || _mode == MODE_4_LOOPING)
+        return (_pattern == 1) ? 0 : 1;
+
+    return (_pattern == _patterns.groupPatternCount((patternGroupType)_group)-1) ? 0 : _pattern + 1;
+}
 
 // ISR's
 void groupButtonFallingISR()
@@ -63,11 +99,15 @@ void groupButtonRisingISR()
         // Quick push
         if (buttonReleasedTime - _groupButtonPushedTime < BUTTON_LONG_PUSH)
         {
-            _group = (_group == _patterns.maxGroups()-1) ? 0 : _group + 1;
+            _group = nextGroup();
         }
         else  // 2s buton push resets back to 0.
         {
             _group = 0;
+
+            // Also loop the patterns back to the beginning when resetting group.
+            if (_mode == MODE_2_CONTINUOUS)
+                _pattern = 0;
         }
 
         _groupButtonBeep = false;
@@ -91,7 +131,7 @@ void patternButtonRisingISR()
 
         if (buttonReleasedTime - _patternButtonPushedTime < BUTTON_LONG_PUSH)
         {
-            _pattern = (_pattern == _patterns.groupPatternCount((patternGroupType)_group)-1) ? 0 : _pattern + 1;
+            _pattern = nextPattern();
         }
         else
         {
@@ -119,6 +159,10 @@ void setup()
     pinMode(STDBY_LED_PIN, OUTPUT);
     pinMode(CHRG_STAT_PIN, INPUT);
     pinMode(STDBY_STAT_PIN, INPUT);
+
+    // initialize the pushbutton pins as an input:
+    pinMode(GROUP_BUTTON_PIN, INPUT);
+    pinMode(PATTERN_BUTTON_PIN, INPUT);
 
     pinMode(PWR_EN_PIN, INPUT);
 
@@ -156,6 +200,13 @@ void setup()
     _color.begin();
     _bright.begin();
 
+    _ringConfig.begin();
+    if (!_ringConfig.isInitialized())
+    {
+        _ringConfig.init();
+        _mode = MODE_1_NORMAL;
+    }
+
     // Set the MODE here.
     if (bothButtonsHeld())
     {
@@ -163,28 +214,27 @@ void setup()
         int speedPos = _speed.knobPosition();
         int colorPos = _color.knobPosition();
 
-        if (brightPos == POS_LEFT && speedPos == POS_LEFT && colorPos == POS_LEFT)
-            _mode = MODE_0_INIT;
-        else if (brightPos == POS_LEFT && speedPos == POS_LEFT && colorPos == POS_RIGHT)
+        // NOTE: SPEED KNOB IS FLIPPED IN SOFTWARE
+
+        if (brightPos == POS_LEFT && speedPos == POS_LEFT && colorPos == POS_LEFT)         // LLL
+        {
+            _ringConfig.init();
             _mode = MODE_1_NORMAL;
-        else if (brightPos == POS_LEFT && speedPos == POS_RIGHT && colorPos == POS_LEFT)
+        }
+        else if (brightPos == POS_LEFT && speedPos == POS_LEFT && colorPos == POS_RIGHT)   // LLR (not really needed...)
+            _mode = MODE_1_NORMAL;
+        else if (brightPos == POS_LEFT && speedPos == POS_RIGHT && colorPos == POS_LEFT)   // LRL
             _mode = MODE_2_CONTINUOUS;
-         else if (brightPos == POS_LEFT && speedPos == POS_RIGHT && colorPos == POS_RIGHT)
+         else if (brightPos == POS_LEFT && speedPos == POS_RIGHT && colorPos == POS_RIGHT) // LRR
             _mode = MODE_3_FAVORTITE;
-         else if (brightPos == POS_RIGHT && speedPos == POS_LEFT && colorPos == POS_LEFT)
+         else if (brightPos == POS_RIGHT && speedPos == POS_LEFT && colorPos == POS_LEFT)  // RLL
             _mode = MODE_4_LOOPING;
-         else if (brightPos == POS_RIGHT && speedPos == POS_LEFT && colorPos == POS_RIGHT)
+         else if (brightPos == POS_RIGHT && speedPos == POS_LEFT && colorPos == POS_RIGHT) // RLR
             _mode = MODE_5_STOBES;
+
+        _patterns.displayMode(_mode, 3000);
+        delay(200);
      }
-
-    _ringConfig.begin();
-    if (!_ringConfig.isInitialized() || _mode == MODE_0_INIT)
-    {
-        _ringConfig.init();
-        _mode = MODE_1_NORMAL;
-
-        delay(200); // Give the user time to release the button.
-    }
 
     // Readjust the LED buffer to the exact length needed.
     _patterns.getLeds().updateLength(_ringConfig.numPixels());
@@ -192,6 +242,38 @@ void setup()
     _patterns.ledTest(255);
 
     _menu.begin();
+
+    // In these modes the pattern button is used to pause and unpause the lights,
+    // and we start at the flag group.
+    if (_mode == MODE_3_FAVORTITE)
+    {
+        _group = (uint8_t)patternGroupType::CYCLE_GROUP;
+        _pattern = 0;
+
+        _menu.lastGroup(_group);
+        _menu.lastPattern(_pattern);
+    }
+
+    if (_mode == MODE_4_LOOPING)
+    {
+        _group = (uint8_t)patternGroupType::CYCLE_ALL_GROUP;
+        _pattern = 0;
+
+        _menu.lastGroup(_group);
+        _menu.lastPattern(_pattern);
+    }
+
+    if (_mode == MODE_5_STOBES)
+    {
+        _group = (uint8_t)patternGroupType::STROBE_GROUP;
+        _pattern = _menu.defaultPattern(_group);
+
+        _menu.lastGroup(_group);
+        _menu.lastPattern(_pattern);
+    }
+
+    _serialDebug.infoInt("Mode:", _mode);
+    _serialDebug.info();
 
     // Attach the button interrupts.
     attachInterrupt(digitalPinToInterrupt(GROUP_BUTTON_PIN), groupButtonFallingISR, FALLING);
@@ -229,7 +311,7 @@ void loop()
         _menu.writeLastPatternData();
 
         // Update the 'Last' vars with the new values.
-        _menu.updateLastGroup();
+        _menu.updateLastGroup(_mode != MODE_2_CONTINUOUS);
 
         _menu.writeLastGroup();
 

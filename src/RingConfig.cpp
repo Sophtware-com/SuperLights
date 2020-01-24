@@ -8,7 +8,7 @@
 #include "Buzzer.h"
 
 
-RingConfig _ringConfig(12, 6, 3, DirectionType::CCW, 10.0);
+RingConfig _ringConfig(12, 6, 3, DirectionType::CCW);
 
 
 void RingConfig::begin(uint16_t writeOffset)
@@ -24,15 +24,12 @@ void RingConfig::begin(uint16_t writeOffset)
         mTopCenter = EEPROM.read(address++);
         mTopQuarter = EEPROM.read(address++);
         mDirection = (DirectionType)min(EEPROM.read(address++), 1);
-        EEPROM.get(address, mResRatio);
 
         _serialDebug.info("Ring values restored.");
         _serialDebug.infoInt("|-NumPixels", mNumPixels);
         _serialDebug.infoInt("|-TopCenter", mTopCenter);
         _serialDebug.infoInt("|-TopQuarter", mTopQuarter);
         _serialDebug.infoInt("|-Direction", (int)mDirection);
-//        _serialDebug.infoInt("|-SizeOfFloat", sizeof(float));
-        _serialDebug.infoFloat("\\-ResRatio", mResRatio);
     }
 }
 
@@ -79,9 +76,7 @@ void RingConfig::init()
     while (bothButtonsOpen())
         mTopQuarter = _patterns.initializeTopQuarter(min(_bright.read(), mNumPixels/2));
 
-    mResRatio = 0; // Not used anymore...
-
-    mDirection = (digitalRead(PATTERN_BUTTON_PIN) == HIGH) ? DirectionType::CCW : DirectionType::CW;
+    mDirection = (digitalRead(PATTERN_BUTTON_PIN) == LOW) ? DirectionType::CCW : DirectionType::CW;
 
     _buzzer.beep();
 
@@ -98,12 +93,10 @@ void RingConfig::save()
     EEPROM.write(address++, mTopCenter);
     EEPROM.write(address++, mTopQuarter);
     EEPROM.write(address++, (uint8_t)mDirection);
-    EEPROM.put(address, mResRatio);
 
     _serialDebug.info("Ring values Saved.");
     _serialDebug.infoInt("-NumPixels", mNumPixels);
     _serialDebug.infoInt("-TopCenter", mTopCenter);
     _serialDebug.infoInt("-TopQuarter", mTopQuarter);
     _serialDebug.infoInt("-Direction", (int)mDirection);
-    _serialDebug.infoFloat("-ResRatio", mResRatio);
 }

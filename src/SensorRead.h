@@ -4,10 +4,9 @@
 #include <Arduino.h>
 #include "SerialDebug.h"
 
-#define SPEED_VAL_PIN      A0
 #define BRIGHT_VAL_PIN     A1
+#define SPEED_VAL_PIN      A0
 #define COLOR_VAL_PIN      A2
-#define BATTERY_VAL_PIN    A3
 
 // Cardinal positions of the knobs: full left, middle, full right.
 #define POS_UNKNOWN -2
@@ -108,18 +107,15 @@ public:
     {
         // The knob is in the middle (12 o'clock, within 16 each side).
         int pos = POS_UNKNOWN;
-        uint16_t value = read();
+        uint16_t value = (mFlip) ? Flip(read()) : read();
 
+        pos = POS_CENTER;
         if (value < POS_RANGE)
-            pos = POS_LEFT;
-        else if (value > (128-POS_RANGE) && value < (128+POS_RANGE))
-            pos = POS_CENTER;
-        else if (value > 254-POS_RANGE)
             pos = POS_RIGHT;
+        else if (value > 254-POS_RANGE)
+            pos = POS_LEFT;
 
         return pos;
-
-        return value > 112 && value < 144;
     }
 
     uint16_t lastRead()
@@ -174,6 +170,5 @@ public:
 extern SensorRead _speed;
 extern SensorRead _color;
 extern SensorRead _bright;
-extern SensorRead _battery;
 
 #endif //SENSORREAD_H
