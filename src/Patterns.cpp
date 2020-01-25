@@ -104,7 +104,7 @@ const uint8_t Patterns::groupPatternCount(patternGroupType group)
         case RAINBOW_GROUP:
             return 6;
         case COLOR_GROUP:
-            return 8;
+            return 10;
         case CYCLE_GROUP:
             return 1;
         case CYCLE_ALL_GROUP:
@@ -210,15 +210,15 @@ const char* Patterns::patternName(uint8_t group, uint8_t pattern)
         },
         { // COLOR_GROUP
             "randomPixels",
-            "flickerColor",
+            "randomPixelColor",
             "sparkle",
+            "fullSparkle"
             "starBurst"
             "nightRider",
             "quadRider",
+            "flickerColor",
             "solidColor",
             "solidWhite",
-            "8",
-            "9"
         },
         { // CYCLE_GROUP
             "cycleFavorites",
@@ -268,8 +268,8 @@ const char* Patterns::patternName(uint8_t group, uint8_t pattern)
         //     "8",
         //     "9"
         // },
-    };
 
+    };
     strcpy_P(buffer, (char*)&(names[group][pattern]));
 
     return buffer;
@@ -922,19 +922,23 @@ void Patterns::colorGroup(uint8_t pattern)
         case 0: // RANDOM PIXELS LIT
         default:
             randomPixels(); break;
-        case 1: // ALL PIXELS FLICKERING
-            flickerColor(); break;
+        case 1: // RANDOM PIXELS W/BACKGROUND
+            randomPixelsColor(); break;
         case 2: // SPARKLE
             sparkle(); break;
-        case 3: // STAR BURST
+        case 3: // FULL SPARKLE
+            fullSparkle(); break;
+        case 4: // STAR BURST
             starBurst(); break;
-        case 4: // NIGHT RIDER
+        case 5: // NIGHT RIDER
             nightRider(); break;
-        case 5: // QUAD RIDER
+        case 6: // QUAD RIDER
             quadRider(); break;
-        case 6: // COLOR KNOB CONTROLLED
+        case 7: // ALL PIXELS FLICKERING
+            flickerColor(); break;
+        case 8: // COLOR KNOB CONTROLLED
             solidColor(); break;
-        case 7: // WHITE ONLY
+        case 9: // WHITE ONLY
             solidWhite(); break;
     }
 }
@@ -946,6 +950,17 @@ void Patterns::randomPixels()
 
     for (uint16_t i=0; i<_ring.numPixels(); i++)
         setPixelColor(i, (uint32_t)(random(0, 100) > 50 ? toColor(color, bright) : 0));
+
+    show(_menu.currentSpeed());
+}
+
+void Patterns::randomPixelsColor()
+{
+    uint8_t color = _menu.currentColor();
+    uint8_t bright = _menu.currentBrightness();
+
+    for (uint16_t i=0; i<_ring.numPixels(); i++)
+        setPixelColor(i, (uint32_t)(random(0, 100) > 50 ? toColor(color, bright) : toColor(255 - color, bright)));
 
     show(_menu.currentSpeed());
 }
@@ -962,8 +977,20 @@ void Patterns::flickerColor()
 
 void Patterns::sparkle()
 {
+    uint8_t bright = _menu.currentBrightness();
+
     for (uint16_t i=0; i<_ring.numPixels(); i++)
-        setPixelColor(i, (uint32_t)(random(0, 100) > 50 ? toColor(random(1,255), random(0, 255)) : 0));
+        setPixelColor(i, (uint32_t)(random(0, 100) > 50 ? toColor(random(1, 255), bright) : 0));
+
+    show(_menu.currentSpeed());
+}
+
+void Patterns::fullSparkle()
+{
+    uint8_t bright = _menu.currentBrightness();
+
+    for (uint16_t i=0; i<_ring.numPixels(); i++)
+        setPixelColor(i, toColor(random(1, 255), bright));
 
     show(_menu.currentSpeed());
 }

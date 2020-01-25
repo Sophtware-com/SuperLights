@@ -210,12 +210,14 @@ public:
     void solidColor();
     void flickerColor();
     void randomPixels();
+    void randomPixelsColor();
     void nightRider();
     void nightRider(uint8_t color);
     void quadRider();
     void quadRider(uint8_t color);
     void starBurst();
     void sparkle();
+    void fullSparkle();
 
     // EMERGENCY_GROUP
     void emergencyGroup();
