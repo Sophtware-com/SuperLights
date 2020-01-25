@@ -162,13 +162,13 @@ const char* Patterns::patternName(uint8_t group, uint8_t pattern)
         },
         { // FLAG_GROUP
             "americanFlag",
-            "americanFlagFlatTop",
+            "spainFlag",
             "mexicanFlag",
             "frenchFlag",
             "canadianFlag",
-            "rebelFlag",
-            "spainFlag",
             "portugalFlag",
+            "rebelFlag",
+            "7",
             "8",
             "9"
         },
@@ -586,20 +586,18 @@ void Patterns::flagGroup(uint8_t pattern)
         case 0: // AMERICAN
         default:
             americanFlag(); break;
-        case 1: // MEXICAN
-            americanFlagFlatTop(); break;
+        case 1: // SPAIN
+            spainFlag(); break;
         case 2: // MEXICAN
             mexicanFlag(); break;
         case 3: // FRENCH
             frenchFlag(); break;
         case 4: // CANADIAN
             canadianFlag(); break;
-        case 5: // REBEL
-            rebelFlag(); break;
-        case 6: // SPAIN
-            spainFlag(); break;
-        case 7: // PORTUGAL
+        case 5: // PORTUGAL
             portugalFlag(); break;
+        case 6: // REBEL
+            rebelFlag(); break;
     }
 }
 
@@ -637,58 +635,58 @@ void Patterns::americanFlag()
     show(_menu.currentSpeed());
 }
 
-void Patterns::americanFlagFlatTop()
-{
-    uint8_t brightness = _menu.currentBrightness(190);
+// void Patterns::americanFlagFlatTop()
+// {
+//     uint8_t brightness = _menu.currentBrightness(190);
 
-    setRingColor(white(brightness));
+//     setRingColor(white(brightness));
 
-    // Blue Panel
-    setPixelColor(12, blue(brightness), _ring.topQuarter()-12, CCW);
+//     // Blue Panel
+//     setPixelColor(12, blue(brightness), _ring.topQuarter()-12, CCW);
 
-    static uint8_t spacing = (_ring.topQuarter()-12) / 6;
+//     static uint8_t spacing = (_ring.topQuarter()-12) / 6;
 
-    // Stars
-    if (twinkle())
-        setPixelColor(spacing-1+12, white(brightness), spacing*4+2, CCW, spacing, 2);
-    else
-        setPixelColor(spacing-1+(spacing/2)+12, white(brightness), spacing*3+2, CCW, spacing, 2);
+//     // Stars
+//     if (twinkle())
+//         setPixelColor(spacing-1+12, white(brightness), spacing*4+2, CCW, spacing, 2);
+//     else
+//         setPixelColor(spacing-1+(spacing/2)+12, white(brightness), spacing*3+2, CCW, spacing, 2);
 
-    // STRIPS RIGHT
-    uint8_t stripWidth = (_ring.topQuarter()-12) / 7;
-    uint8_t extraPixels = (_ring.topQuarter()-12) % 7;
+//     // STRIPS RIGHT
+//     uint8_t stripWidth = (_ring.topQuarter()-12) / 7;
+//     uint8_t extraPixels = (_ring.topQuarter()-12) % 7;
 
-    setPixelColor(0, red(brightness), 12, CCW);
-    setPixelColor(0, red(brightness), 12, CW);
+//     setPixelColor(0, red(brightness), 12, CCW);
+//     setPixelColor(0, red(brightness), 12, CW);
 
-    uint8_t pos = 12, smallWidths = 7 - extraPixels;
-    for (int i=0; i<7; i++)
-    {
-        if (smallWidths > 0)
-        {
-            setPixelColor(pos, (i%2 == 0) ? red(brightness) : white(brightness), stripWidth);
-            pos += stripWidth;
-            smallWidths--;
-        }
-        else
-        {
-            setPixelColor(pos, (i%2 == 0) ? red(brightness) : white(brightness), (stripWidth+1));
-            pos += (stripWidth+1);
-        }
-    }
+//     uint8_t pos = 12, smallWidths = 7 - extraPixels;
+//     for (int i=0; i<7; i++)
+//     {
+//         if (smallWidths > 0)
+//         {
+//             setPixelColor(pos, (i%2 == 0) ? red(brightness) : white(brightness), stripWidth);
+//             pos += stripWidth;
+//             smallWidths--;
+//         }
+//         else
+//         {
+//             setPixelColor(pos, (i%2 == 0) ? red(brightness) : white(brightness), (stripWidth+1));
+//             pos += (stripWidth+1);
+//         }
+//     }
 
-    // Strips Bottom
-    stripWidth = (_ring.bottomQuarter()-12) / 6;
-    extraPixels = (_ring.bottomQuarter()-12) % 6;
+//     // Strips Bottom
+//     stripWidth = (_ring.bottomQuarter()-12) / 6;
+//     extraPixels = (_ring.bottomQuarter()-12) % 6;
 
-    setPixelColor(_ring.topQuarter()+stripWidth, red(brightness), _ring.bottomQuarter()-stripWidth-12, CW, stripWidth*2, stripWidth);
-    setPixelColor(_ring.topQuarter()+stripWidth, red(brightness), _ring.bottomQuarter()-stripWidth-12, CCW, stripWidth*2, stripWidth);
+//     setPixelColor(_ring.topQuarter()+stripWidth, red(brightness), _ring.bottomQuarter()-stripWidth-12, CW, stripWidth*2, stripWidth);
+//     setPixelColor(_ring.topQuarter()+stripWidth, red(brightness), _ring.bottomQuarter()-stripWidth-12, CCW, stripWidth*2, stripWidth);
 
-    setPixelColor(_ring.halfPixels()-12, red(brightness), 12, CCW);
-    setPixelColor(_ring.halfPixels()-12, red(brightness), 12, CW);
+//     setPixelColor(_ring.halfPixels()-12, red(brightness), 12, CCW);
+//     setPixelColor(_ring.halfPixels()-12, red(brightness), 12, CW);
 
-    show(_menu.currentSpeed());
-}
+//     show(_menu.currentSpeed());
+// }
 
 void Patterns::frenchFlag()
 {
