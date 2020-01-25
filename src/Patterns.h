@@ -69,19 +69,6 @@ public:
     uint8_t* getPixels() { return mLeds.getPixels(); }
     uint16_t getPixelBytes() { return mLeds.numPixels() * 3; }
 
-    float estimateCurrent()
-    {
-        float current = 0.0;
-
-        uint8_t *pixels = getPixels();
-        for (uint16_t i=0; i<getPixelBytes(); i++)
-            current += ((float)(*(pixels+i))/255.0) * 0.01;
-
-//        _serialDebug.infoFloat("Current", current);
-
-        return current;
-    }
-
     void initComet()
     {
         mPoints = sizeof(comet2)/sizeof(cometPoint);
@@ -256,16 +243,16 @@ public:
     void theaterChase(uint8_t wait, uint8_t brightness, uint8_t color);
 
     // Morse code functions.
-    void dot();
-    void dash();
-    void displayMorse(uint8_t pattern, const char* msg);
-    void morseCodeGroup();
-    void morseCodeGroup(uint8_t pattern);
+    // void dot();
+    // void dash();
+    // void displayMorse(uint8_t pattern, const char* msg);
+    // void morseCodeGroup();
+    // void morseCodeGroup(uint8_t pattern);
 
     // Display ring from a bitmap.
-    uint16_t displayArray(uint16_t startPos, uint16_t size, uint8_t* array);
-    void displayLine(uint16_t size, uint8_t* array, uint8_t wait);
-    void displayBitmap(uint16_t lines, uint16_t size, uint8_t* bitmap, uint8_t wait);
+    // uint16_t displayArray(uint16_t startPos, uint16_t size, uint8_t* array);
+    // void displayLine(uint16_t size, uint8_t* array, uint8_t wait);
+    // void displayBitmap(uint16_t lines, uint16_t size, uint8_t* bitmap, uint8_t wait);
 };
 
 extern Patterns _patterns;

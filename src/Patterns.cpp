@@ -1343,204 +1343,204 @@ void Patterns::thanksGivingLights()
 //
 // MORSE CODE GROUP
 //
-void Patterns::morseCodeGroup()
-{
-    morseCodeGroup(_pattern);
-}
+// void Patterns::morseCodeGroup()
+// {
+//     morseCodeGroup(_pattern);
+// }
 
-void Patterns::morseCodeGroup(uint8_t pattern)
-{
-    switch (pattern) {
-        case 0:
-        default:
-            displayMorse(0, "SOS");
-            break;
-        case 1:
-            displayMorse(1, "SUPER LIGHTS");
-            break;
-        case 2:
-            displayMorse(2, "2.1B");
-            break;
-    }
-}
+// void Patterns::morseCodeGroup(uint8_t pattern)
+// {
+//     switch (pattern) {
+//         case 0:
+//         default:
+//             displayMorse(0, "SOS");
+//             break;
+//         case 1:
+//             displayMorse(1, "SUPER LIGHTS");
+//             break;
+//         case 2:
+//             displayMorse(2, "2.1B");
+//             break;
+//     }
+// }
 
-void Patterns::showPattern(uint8_t pattern)
-{
-    uint8_t b = (pattern + 1) * 2;
-    setPixelColor(_ring.topQuarter() - b, black(), b, CW, 2);
-}
+// void Patterns::showPattern(uint8_t pattern)
+// {
+//     uint8_t b = (pattern + 1) * 2;
+//     setPixelColor(_ring.topQuarter() - b, black(), b, CW, 2);
+// }
 
-void Patterns::dot()
-{
-    setRingColor(toColor(mMorseColor, mMorseBrightness));
-    showPattern(mMorsePattern);
-    show(TIME_UNIT);
-    clear();
-    show(TIME_UNIT);
-}
+// void Patterns::dot()
+// {
+//     setRingColor(toColor(mMorseColor, mMorseBrightness));
+//     showPattern(mMorsePattern);
+//     show(TIME_UNIT);
+//     clear();
+//     show(TIME_UNIT);
+// }
 
-void Patterns::dash()
-{
-    setRingColor(toColor(mMorseColor, mMorseBrightness));
-    showPattern(mMorsePattern);
-    show(TIME_UNIT*3);
-    clear();
-    show(TIME_UNIT);
-}
+// void Patterns::dash()
+// {
+//     setRingColor(toColor(mMorseColor, mMorseBrightness));
+//     showPattern(mMorsePattern);
+//     show(TIME_UNIT*3);
+//     clear();
+//     show(TIME_UNIT);
+// }
 
-void Patterns::displayMorse(uint8_t pattern, const char* msg)
-{
-    static int lastIndex = 0;
-    static uint8_t lastPattern = 0;
+// void Patterns::displayMorse(uint8_t pattern, const char* msg)
+// {
+//     static int lastIndex = 0;
+//     static uint8_t lastPattern = 0;
 
-    mMorseColor = _menu.currentColor();
-    mMorsePattern = pattern;
-    mMorseBrightness = _menu.currentBrightness();
+//     mMorseColor = _menu.currentColor();
+//     mMorsePattern = pattern;
+//     mMorseBrightness = _menu.currentBrightness();
 
-    if (lastPattern != pattern)
-    {
-        lastIndex = 0;
-        lastPattern = pattern;
-    }
+//     if (lastPattern != pattern)
+//     {
+//         lastIndex = 0;
+//         lastPattern = pattern;
+//     }
 
-    if (msg[lastIndex] == '\0')
-        lastIndex = 0;
+//     if (msg[lastIndex] == '\0')
+//         lastIndex = 0;
 
-    // short mark, dot or "dit" (▄▄▄▄): "dot duration" is one time unit long
-    // longer mark, dash or "dah" (▄▄▄▄▄▄): three time units long
-    // inter-element gap between the dots and dashes within a character: one dot duration or one unit long
-    // short gap (between letters): three time units long
-    // medium gap (between words): seven time units long
+//     // short mark, dot or "dit" (▄▄▄▄): "dot duration" is one time unit long
+//     // longer mark, dash or "dah" (▄▄▄▄▄▄): three time units long
+//     // inter-element gap between the dots and dashes within a character: one dot duration or one unit long
+//     // short gap (between letters): three time units long
+//     // medium gap (between words): seven time units long
 
-    char ch = msg[lastIndex++];
+//     char ch = msg[lastIndex++];
 
-    if (ch == ' ') {
-        delay(TIME_UNIT*7); }
+//     if (ch == ' ') {
+//         delay(TIME_UNIT*7); }
 
-    else if (ch == '1') {
-        dot(); dash(); dash(); dash(); dash(); delay(TIME_UNIT*2); }
-    else if (ch == '2') {
-        dot(); dot(); dash(); dash(); dash(); delay(TIME_UNIT*2); }
-    else if (ch == '3') {
-        dot(); dot(); dot(); dash(); dash(); delay(TIME_UNIT*2); }
-    else if (ch == '4') {
-        dot(); dot(); dot(); dot(); dash(); delay(TIME_UNIT*2); }
-    else if (ch == '5') {
-        dot(); dot(); dot(); dot(); dot(); delay(TIME_UNIT*2); }
-    else if (ch == '6') {
-        dash(); dot(); dot(); dot(); dot(); delay(TIME_UNIT*2); }
-    else if (ch == '7') {
-        dash(); dash(); dot(); dot(); dot(); delay(TIME_UNIT*2); }
-    else if (ch == '8') {
-        dash(); dash(); dash(); dot(); dot(); delay(TIME_UNIT*2); }
-    else if (ch == '9') {
-        dash(); dash(); dash(); dash(); dot(); delay(TIME_UNIT*2); }
-    else if (ch == '0') {
-        dash(); dash(); dash(); dash(); dash(); delay(TIME_UNIT*2); }
+//     else if (ch == '1') {
+//         dot(); dash(); dash(); dash(); dash(); delay(TIME_UNIT*2); }
+//     else if (ch == '2') {
+//         dot(); dot(); dash(); dash(); dash(); delay(TIME_UNIT*2); }
+//     else if (ch == '3') {
+//         dot(); dot(); dot(); dash(); dash(); delay(TIME_UNIT*2); }
+//     else if (ch == '4') {
+//         dot(); dot(); dot(); dot(); dash(); delay(TIME_UNIT*2); }
+//     else if (ch == '5') {
+//         dot(); dot(); dot(); dot(); dot(); delay(TIME_UNIT*2); }
+//     else if (ch == '6') {
+//         dash(); dot(); dot(); dot(); dot(); delay(TIME_UNIT*2); }
+//     else if (ch == '7') {
+//         dash(); dash(); dot(); dot(); dot(); delay(TIME_UNIT*2); }
+//     else if (ch == '8') {
+//         dash(); dash(); dash(); dot(); dot(); delay(TIME_UNIT*2); }
+//     else if (ch == '9') {
+//         dash(); dash(); dash(); dash(); dot(); delay(TIME_UNIT*2); }
+//     else if (ch == '0') {
+//         dash(); dash(); dash(); dash(); dash(); delay(TIME_UNIT*2); }
 
-    else if (ch == 'A') {
-        dot(); dash(); delay(TIME_UNIT*2); }
-    else if (ch == 'B') {
-        dash(); dot(); dot(); dot(); delay(TIME_UNIT*2); }
-    else if (ch == 'C') {
-        dash(); dot(); dash(); dot(); delay(TIME_UNIT*2); }
-    else if (ch == 'D') {
-        dash(); dot(); dot(); delay(TIME_UNIT*2); }
-    else if (ch == 'E') {
-        dot(); delay(TIME_UNIT*2); }
-    else if (ch == 'F') {
-        dot(); dot(); dash(); dot(); delay(TIME_UNIT*2); }
-    else if (ch == 'G') {
-        dash(); dash(); dot(); delay(TIME_UNIT*2); }
-    else if (ch == 'H') {
-        dot(); dot(); dot(); dot(); delay(TIME_UNIT*2); }
-    else if (ch == 'I') {
-        dot(); dot(); delay(TIME_UNIT*2); }
-    else if (ch == 'J') {
-        dot(); dash(); dash(); dash(); delay(TIME_UNIT*2); }
-    else if (ch == 'K') {
-        dash(); dot(); dash(); delay(TIME_UNIT*2); }
-    else if (ch == 'J') {
-        dot(); dash(); dot(); dot(); delay(TIME_UNIT*2); }
-    else if (ch == 'M') {
-        dash(); dash(); delay(TIME_UNIT*2); }
-    else if (ch == 'N') {
-        dash(); dot(); delay(TIME_UNIT*2); }
-    else if (ch == 'O') {
-        dash(); dash(); dash(); delay(TIME_UNIT*2); }
-    else if (ch == 'P') {
-        dot(); dash(); dash(); dot(); delay(TIME_UNIT*2); }
-    else if (ch == 'Q') {
-        dash(); dash(); dot(); dash(); delay(TIME_UNIT*2); }
-    else if (ch == 'R') {
-        dot(); dash(); dot(); delay(TIME_UNIT*2); }
-    else if (ch == 'S') {
-        dot(); dot(); dot(); delay(TIME_UNIT*2); }
-    else if (ch == 'T') {
-        dash(); delay(TIME_UNIT*2); }
-    else if (ch == 'U') {
-        dot(); dot(); dash(); delay(TIME_UNIT*2); }
-    else if (ch == 'V') {
-        dot(); dot(); dot(); dash(); delay(TIME_UNIT*2); }
-    else if (ch == 'W') {
-        dot(); dash(); dash(); delay(TIME_UNIT*2); }
-    else if (ch == 'X') {
-        dash(); dot(); dot(); dash(); delay(TIME_UNIT*2); }
-    else if (ch == 'Y') {
-        dash(); dot(); dash(); dash(); delay(TIME_UNIT*2); }
-    else if (ch == 'Z') {
-        dash(); dash(); dot(); dot(); delay(TIME_UNIT*2); }
+//     else if (ch == 'A') {
+//         dot(); dash(); delay(TIME_UNIT*2); }
+//     else if (ch == 'B') {
+//         dash(); dot(); dot(); dot(); delay(TIME_UNIT*2); }
+//     else if (ch == 'C') {
+//         dash(); dot(); dash(); dot(); delay(TIME_UNIT*2); }
+//     else if (ch == 'D') {
+//         dash(); dot(); dot(); delay(TIME_UNIT*2); }
+//     else if (ch == 'E') {
+//         dot(); delay(TIME_UNIT*2); }
+//     else if (ch == 'F') {
+//         dot(); dot(); dash(); dot(); delay(TIME_UNIT*2); }
+//     else if (ch == 'G') {
+//         dash(); dash(); dot(); delay(TIME_UNIT*2); }
+//     else if (ch == 'H') {
+//         dot(); dot(); dot(); dot(); delay(TIME_UNIT*2); }
+//     else if (ch == 'I') {
+//         dot(); dot(); delay(TIME_UNIT*2); }
+//     else if (ch == 'J') {
+//         dot(); dash(); dash(); dash(); delay(TIME_UNIT*2); }
+//     else if (ch == 'K') {
+//         dash(); dot(); dash(); delay(TIME_UNIT*2); }
+//     else if (ch == 'J') {
+//         dot(); dash(); dot(); dot(); delay(TIME_UNIT*2); }
+//     else if (ch == 'M') {
+//         dash(); dash(); delay(TIME_UNIT*2); }
+//     else if (ch == 'N') {
+//         dash(); dot(); delay(TIME_UNIT*2); }
+//     else if (ch == 'O') {
+//         dash(); dash(); dash(); delay(TIME_UNIT*2); }
+//     else if (ch == 'P') {
+//         dot(); dash(); dash(); dot(); delay(TIME_UNIT*2); }
+//     else if (ch == 'Q') {
+//         dash(); dash(); dot(); dash(); delay(TIME_UNIT*2); }
+//     else if (ch == 'R') {
+//         dot(); dash(); dot(); delay(TIME_UNIT*2); }
+//     else if (ch == 'S') {
+//         dot(); dot(); dot(); delay(TIME_UNIT*2); }
+//     else if (ch == 'T') {
+//         dash(); delay(TIME_UNIT*2); }
+//     else if (ch == 'U') {
+//         dot(); dot(); dash(); delay(TIME_UNIT*2); }
+//     else if (ch == 'V') {
+//         dot(); dot(); dot(); dash(); delay(TIME_UNIT*2); }
+//     else if (ch == 'W') {
+//         dot(); dash(); dash(); delay(TIME_UNIT*2); }
+//     else if (ch == 'X') {
+//         dash(); dot(); dot(); dash(); delay(TIME_UNIT*2); }
+//     else if (ch == 'Y') {
+//         dash(); dot(); dash(); dash(); delay(TIME_UNIT*2); }
+//     else if (ch == 'Z') {
+//         dash(); dash(); dot(); dot(); delay(TIME_UNIT*2); }
 
-    else if (ch == '.') {
-        dot(); dash(); dot(); dash(); dot(); dash(); delay(TIME_UNIT*2); }
+//     else if (ch == '.') {
+//         dot(); dash(); dot(); dash(); dot(); dash(); delay(TIME_UNIT*2); }
 
-    if (msg[lastIndex] == '\0')
-        delay(TIME_UNIT*7);
-}
+//     if (msg[lastIndex] == '\0')
+//         delay(TIME_UNIT*7);
+// }
 
 //
 //  UTILITY FUNCTIONS
 //
-uint16_t Patterns::displayArray(uint16_t startPos, uint16_t size, uint8_t* array)
-{
-    for (uint16_t i=0; i<size/3; i++)
-    {
-        if (startPos >= _ring.numPixels())
-            return startPos;
+// uint16_t Patterns::displayArray(uint16_t startPos, uint16_t size, uint8_t* array)
+// {
+//     for (uint16_t i=0; i<size/3; i++)
+//     {
+//         if (startPos >= _ring.numPixels())
+//             return startPos;
 
-        setPixelColorAbs(startPos++, rgbColor(*(array+(i*3)), *(array+(i*3)+1), *(array+(i*3)+2)));
-    }
+//         setPixelColorAbs(startPos++, rgbColor(*(array+(i*3)), *(array+(i*3)+1), *(array+(i*3)+2)));
+//     }
 
-    return startPos;
-}
+//     return startPos;
+// }
 
-void Patterns::displayLine(uint16_t size, uint8_t* array, uint8_t wait)
-{
-    uint16_t startPos = 0;
-    while (startPos < _ring.numPixels())
-        startPos = displayArray(startPos, size, array);
+// void Patterns::displayLine(uint16_t size, uint8_t* array, uint8_t wait)
+// {
+//     uint16_t startPos = 0;
+//     while (startPos < _ring.numPixels())
+//         startPos = displayArray(startPos, size, array);
 
-    show(wait);
-}
+//     show(wait);
+// }
 
-void Patterns::displayBitmap(uint16_t lines, uint16_t size, uint8_t* bitmap, uint8_t wait)
-{
-    static uint16_t line = 0;
-    static uint16_t lastLines = 0;
+// void Patterns::displayBitmap(uint16_t lines, uint16_t size, uint8_t* bitmap, uint8_t wait)
+// {
+//     static uint16_t line = 0;
+//     static uint16_t lastLines = 0;
 
-    if (lines != lastLines)
-    {
-        line = 0;
-        lastLines = lines;
-    }
+//     if (lines != lastLines)
+//     {
+//         line = 0;
+//         lastLines = lines;
+//     }
 
-    displayLine(size/lines, (bitmap + ((size/lines) * line)), wait);
+//     displayLine(size/lines, (bitmap + ((size/lines) * line)), wait);
 
-    line++;
+//     line++;
 
-    if (line >= lines)
-        line = 0;
-}
+//     if (line >= lines)
+//         line = 0;
+// }
 
 // Input a value 0 to 255 to get a color value. There are 85 transitions
 // between each primary color (RGB).
