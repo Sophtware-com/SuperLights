@@ -8,6 +8,8 @@
 #include "Buzzer.h"
 #include "Menu.h"
 
+const char* VERSION_NO = "Rev 4.0";
+
 // PIN ASSIGNMENTS
 #define PWR_LED_PIN   8
 #define CHRG_LED_PIN  11
@@ -168,7 +170,7 @@ void setup()
 
     _serialDebug.begin();
     _serialDebug.info("SUPER LED Lights");
-    _serialDebug.info("Rev 4.0");
+    _serialDebug.info(VERSION_NO);
     _serialDebug.info();
 
     _buzzer.begin();
