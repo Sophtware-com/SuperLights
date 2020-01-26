@@ -48,6 +48,9 @@ void patternButtonFallingISR();
 
 uint8_t nextGroup()
 {
+    if (_mode == MODE_2_CONTINUOUS)
+        _pattern = 0;
+
     if (_mode == MODE_3_FAVORTITE)
         return (uint8_t)(_group == patternGroupType::STROBE_GROUP) ? patternGroupType::CYCLE_GROUP : patternGroupType::STROBE_GROUP;
 
@@ -315,7 +318,9 @@ void loop()
         // Update the 'Last' vars with the new values.
         _menu.updateLastGroup(_mode != MODE_2_CONTINUOUS);
 
-        _menu.writeLastGroup();
+        // Only update the last group when in NORMAL mode.
+        if (_mode == MODE_1_NORMAL)
+            _menu.writeLastGroup();
 
         _patterns.clear();
     }
@@ -331,7 +336,8 @@ void loop()
 
         _menu.updateLastPattern();
 
-        _menu.writeLastPattern();
+        if (_mode == MODE_1_NORMAL)
+            _menu.writeLastPattern();
 
         _patterns.clear();
     }
