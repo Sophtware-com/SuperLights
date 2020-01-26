@@ -100,7 +100,7 @@ const uint8_t Patterns::groupPatternCount(patternGroupType group)
         case HOLIDAY_GROUP:
             return 7;
         case EMERGENCY_GROUP:
-            return 4;
+            return 5;
         case RAINBOW_GROUP:
             return 6;
         case COLOR_GROUP:
@@ -188,8 +188,8 @@ const char* Patterns::patternName(uint8_t group, uint8_t pattern)
             "chasingPoliceLights",
             "redBlueTripleSegmentFlash",
             "redBlueHalfRingFlash",
+            "redBlueHalfRingCrawl",
             "redBlueTripleFlash"
-            "4",
             "5",
             "6",
             "7",
@@ -548,22 +548,25 @@ void Patterns::aircraftStrobe()
 
     seg = (seg < 10) ? seg + 1 : 1;
 
-    setPixelColor(0, red(), _ring.halfPixels());
-    setPixelColor(0, green(), _ring.halfPixels(), CCW);
+    uint8_t bright = _menu.currentBrightness();
+
+    setPixelColor(0, red(bright), _ring.halfPixels());
+    setPixelColor(0, green(bright), _ring.halfPixels(), CCW);
 
     if (seg < 3)
     {
         uint8_t topOffset = _ring.bottomOffset();
+        uint8_t size = map(_menu.currentColor(),1,254,6,24);
     
-        setPixelColor(0, white(), 12+topOffset);
-        setPixelColor(0, white(), 12+topOffset, CCW);
-        setPixelColor(_ring.halfPixels()-12, white(), 12);
-        setPixelColor(_ring.halfPixels()-12, white(), 12, CCW);
+        setPixelColor(0, white(), size+topOffset);
+        setPixelColor(0, white(), size+topOffset, CCW);
+        setPixelColor(_ring.halfPixels()-size, white(), size);
+        setPixelColor(_ring.halfPixels()-size, white(), size, CCW);
         show(50);
-        setPixelColor(0, 0, 12+topOffset);
-        setPixelColor(0, 0, 12+topOffset, CCW);
-        setPixelColor(_ring.halfPixels()-12, 0, 12);
-        setPixelColor(_ring.halfPixels()-12, 0, 12, CCW);
+        setPixelColor(0, 0, size+topOffset);
+        setPixelColor(0, 0, size+topOffset, CCW);
+        setPixelColor(_ring.halfPixels()-size, 0, size);
+        setPixelColor(_ring.halfPixels()-size, 0, size, CCW);
         show(50);
     }
     else
@@ -1124,10 +1127,13 @@ void Patterns::emergencyGroup(uint8_t pattern)
         case 1:
             redBlueTripleSegmentFlash();
             break;
-        case 2: // Pattern 3
+        case 2: 
             redBlueHalfRingFlash();
             break;
-        case 3:
+        case 3: 
+            redBlueHalfRingCrawl();
+            break;
+        case 4:
             redBlueTripleFlash();
             break;
     }
@@ -1154,6 +1160,36 @@ void Patterns::redBlueHalfRingFlash()
         setPixelColor(0, red(brightness), _ring.halfPixels());
     else
         setPixelColor(0, blue(brightness), _ring.halfPixels(), CCW);
+
+    show(_menu.currentSpeed());
+}
+
+void Patterns::redBlueHalfRingCrawl()
+{
+    static uint8_t pos = 255;
+
+    uint8_t brightness = _menu.currentBrightness();
+    uint8_t size = map(_menu.currentColor(), 1, 254, 4, 20);
+
+    pos = (pos < _ring.halfPixels()) ? pos + 1 : size;
+
+    clear();
+
+    if (pos == size)
+    {
+        // Flash the top section before the crawl...
+        for (int i=0; i<3; i++)
+        {
+            setPixelColor(0, red(brightness), size);
+            setPixelColor(0, blue(brightness), size, CCW);
+            show(50);
+            clear();
+            show(50);
+        }
+    }
+
+    setPixelColor(0, red(brightness), pos);
+    setPixelColor(0, blue(brightness), pos, CCW);
 
     show(_menu.currentSpeed());
 }

@@ -225,6 +225,7 @@ public:
     void redBlueTripleFlash();
     void redBlueTripleSegmentFlash();
     void redBlueHalfRingFlash();
+    void redBlueHalfRingCrawl();
     void chasingPoliceLights();
     void chaseLights(uint32_t colors[], uint16_t count);
 
