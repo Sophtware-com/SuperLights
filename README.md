@@ -92,8 +92,8 @@ Alternate settings for navigating and displaying patterns can be set using a pro
     #### How to Set this Mode
     ---
     - &#x21ba; *Brightness* knob full counter clockwise
-    - &#x21bb; *Flash Rate* knob full clockwise
-    - &#x21bb; *Color/Size* knob full clockwise
+    - &#x21ba; *Flash Rate* knob full counter clockwise
+    - &#x21ba; *Color/Size* knob full counter clockwise
     - &#x21a7; Hold down *Pattern* and *Group* and switch ON.
     - &#x2611; The mode is set and displayed as segments matching the number.
 

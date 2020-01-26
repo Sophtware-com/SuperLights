@@ -232,7 +232,7 @@ void setup()
             _mode = MODE_3_FAVORTITE;
          else if (brightPos == POS_RIGHT && speedPos == POS_RIGHT && colorPos == POS_RIGHT) // RLR
             _mode = MODE_4_LOOPING;
-         else if (brightPos == POS_LEFT && speedPos == POS_RIGHT && colorPos == POS_RIGHT)  // LRR
+         else if (brightPos == POS_LEFT && speedPos == POS_LEFT && colorPos == POS_LEFT)  // LLL
             _mode = MODE_5_STOBES;
 
         _patterns.displayMode(_mode, 3000);
