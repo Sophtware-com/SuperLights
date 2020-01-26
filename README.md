@@ -19,13 +19,13 @@ The 2 buttons are used for both user programming of settings and navigating the 
 
 The 3 potentiometers control the brightness, flashing rate, and color or size within particular patterns. The brightness is controlled globally and affects the LEDs immediately and this setting is not saved to internal EEPROM. The flash rate and color/size knob settings are stored per individual pattern and the values are saved when moving off the pattern or turning off the unit. The brightness knob does not work on all patterns, especially patterns that vary the birghtness already.  
 
-## LED Initialization Mode
+## LED Initialization
 
-To enter LED initialization mode, with the unit off, turn all 3 knobs counter clockwise until they stop, then hold both group and pattern buttons down, then turn the unit on. When the lights display, let go of both buttons. The unit will enter LED initialization mode allowing the user to set the number of LEDs on their light set, where the 12 o'clock position is, both the 9 and 3 o'clock positions, and the direction the LEDs are mounted - either clockwise or counter-clockwise. This will allow the unit to adjust patterns on the fly so they display correctly on the user's cage ring.
+To enter LED initialization mode, with the unit off, turn all 3 knobs clockwise until they stop, then hold both group and pattern buttons down, then turn the unit on. When the lights display, let go of both buttons. The unit will enter LED initialization mode allowing the user to set the number of LEDs on their light set (even numbers only), where the 12 o'clock position is, both the 9 and 3 o'clock positions, and the direction the LEDs are mounted - either clockwise or counter-clockwise. This will allow the unit to adjust patterns on the fly so they display correctly on the user's cage ring (like the American flag and the navigation strobe pattern).
 
 ### Alternate Settings for Naviagtion
 
-Alternate settings for navigating patterns can be set using a programming sequence at start up. This can be set based in the user's preferences.
+Alternate settings for navigating and displaying patterns can be set using a programming sequence at start up. This can be set based in the user's preferences.
 
 1. **Mode 1 - Normal Operation**
 
@@ -33,13 +33,13 @@ Alternate settings for navigating patterns can be set using a programming sequen
     ---
     In this mode the group button jumps from group to group in sequence looping to the beginning once the end is reached. Holding down the group button for 2 seconds will reset back to the first group. The pattern button navigates the patterns in sequence within the groups looping when the end is reached. Holding down the pattern button for 2 seconds resets back to the first pattern in the selected group.
 
+    The last pattern displayed in each group is saved as a favorite, and is used in the favorite pattern looping mode.
+
+    When turning off the controller, the last group and pattern are saved and restored the next time the controller is turned on.
+
     #### How to Set this Mode
     ---
-    - &#x21ba; *Brightness* knob full counter clockwise
-    - &#x21ba; *Flash Rate* knob full counter clockwise
-    - &#x21bb; *Color/Size* knob full clockwise
-    - &#x21a7; Hold down *Pattern* and *Group* and switch ON.
-    - &#x2611; The mode is set and displayed as segments matching the number.
+    - &#x2611; Turn the controller on and this mode is set automatically.
 
 1. **Mode 2 - Continuous Patterns**
 
@@ -49,8 +49,8 @@ Alternate settings for navigating patterns can be set using a programming sequen
 
     #### How to Set this Mode
     ---
-    - &#x21ba; *Brightness* knob full counter clockwise
-    - &#x21bb; *Flash Rate* knob full clockwise
+    - &#x21bb; *Brightness* knob full clockwise
+    - &#x21ba; *Flash Rate* knob full counter clockwise
     - &#x21ba; *Color/Size* knob full counter clockwise
     - &#x21a7; Hold down *Pattern* and *Group* and switch ON.
     - &#x2611; The mode is set and displayed as segments matching the number.
@@ -59,13 +59,13 @@ Alternate settings for navigating patterns can be set using a programming sequen
 
     #### Description
     ---
-    In this mode the lights will cycle through the last pattern selected in each group (except the strobe group). The pattern button will pause and un-pause the cycling. So if you would like to stop on one pattern you can press the pattern button to pause the cycle. Pushing the pattern button again will resume the cycling. The group button will toggle from cycling through patterns to entering the strobe patterns. Once in the strobe patterns, the pattern button selectes the strobe pattern displaying. Pressing the group button again toggles back to pattern cycling. The flash rate knob while in the pattern cycling controls how long each pattern is displayed before moving on to the next pattern in sequence.
+    In this mode the lights will cycle through the last pattern selected in each group (except the strobe group). The pattern button will pause and un-pause the cycling. So if you would like to stop on one pattern you can press the pattern button to pause the cycle. Pushing the pattern button again will resume the cycling. The group button will toggle from cycling through patterns to entering the strobe patterns. Once in the strobe patterns, the pattern button selectes the strobe pattern displaying. Pressing the group button again toggles back to pattern cycling. Each pattern is displayed for 8 seconds in this mode.
 
     #### How to Set this Mode
     ---
-    - &#x21ba; *Brightness* knob full counter clockwise
+    - &#x21bb; *Brightness* knob full clockwise
     - &#x21bb; *Flash Rate* knob full clockwise
-    - &#x21bb; *Color/Size* knob full clockwise
+    - &#x21ba; *Color/Size* knob full counter clockwise
     - &#x21a7; Hold down *Pattern* and *Group* and switch ON.
     - &#x2611; The mode is set and displayed as segments matching the number.
 
@@ -79,7 +79,7 @@ Alternate settings for navigating patterns can be set using a programming sequen
     ---
     - &#x21bb; *Brightness* knob full clockwise
     - &#x21ba; *Flash Rate* knob full counter clockwise
-    - &#x21ba; *Color/Size* knob full counter clockwise
+    - &#x21bb; *Color/Size* knob full clockwise
     - &#x21a7; Hold down *Pattern* and *Group* and switch ON.
     - &#x2611; The mode is set and displayed as segments matching the number.
 
@@ -91,9 +91,9 @@ Alternate settings for navigating patterns can be set using a programming sequen
 
     #### How to Set this Mode
     ---
-    - &#x21bb; *Brightness* knob full clockwise
-    - &#x21ba; *Flash Rate* knob full counter clockwise
-    - &#x21ba; *Color/Size* knob full clockwise
+    - &#x21ba; *Brightness* knob full counter clockwise
+    - &#x21bb; *Flash Rate* knob full clockwise
+    - &#x21bb; *Color/Size* knob full clockwise
     - &#x21a7; Hold down *Pattern* and *Group* and switch ON.
     - &#x2611; The mode is set and displayed as segments matching the number.
 

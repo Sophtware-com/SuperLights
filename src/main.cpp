@@ -221,20 +221,18 @@ void setup()
 
         // NOTE: SPEED KNOB IS FLIPPED IN SOFTWARE
 
-        if (brightPos == POS_LEFT && speedPos == POS_LEFT && colorPos == POS_LEFT)         // LLL
+        if (brightPos == POS_RIGHT && speedPos == POS_RIGHT && colorPos == POS_RIGHT)       // RRR
         {
             _ringConfig.init();
             _mode = MODE_1_NORMAL;
         }
-        else if (brightPos == POS_LEFT && speedPos == POS_LEFT && colorPos == POS_RIGHT)   // LLR (not really needed...)
-            _mode = MODE_1_NORMAL;
-        else if (brightPos == POS_LEFT && speedPos == POS_RIGHT && colorPos == POS_LEFT)   // LRL
+        else if (brightPos == POS_RIGHT && speedPos == POS_LEFT && colorPos == POS_LEFT)    // RLL
             _mode = MODE_2_CONTINUOUS;
-         else if (brightPos == POS_LEFT && speedPos == POS_RIGHT && colorPos == POS_RIGHT) // LRR
+         else if (brightPos == POS_RIGHT && speedPos == POS_RIGHT && colorPos == POS_LEFT)  // RRL
             _mode = MODE_3_FAVORTITE;
-         else if (brightPos == POS_RIGHT && speedPos == POS_LEFT && colorPos == POS_LEFT)  // RLL
+         else if (brightPos == POS_RIGHT && speedPos == POS_RIGHT && colorPos == POS_RIGHT) // RLR
             _mode = MODE_4_LOOPING;
-         else if (brightPos == POS_RIGHT && speedPos == POS_LEFT && colorPos == POS_RIGHT) // RLR
+         else if (brightPos == POS_LEFT && speedPos == POS_RIGHT && colorPos == POS_RIGHT)  // LRR
             _mode = MODE_5_STOBES;
 
         _patterns.displayMode(_mode, 3000);
