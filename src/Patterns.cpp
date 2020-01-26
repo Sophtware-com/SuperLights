@@ -319,17 +319,14 @@ void Patterns::displayPattern(uint8_t group)
 
 void Patterns::cycleGroup()
 {
-    static int groupIndex = -1;
+    static uint8_t groupIndex = 255;
     static patternGroupType group;
-    static uint8_t pattern = -1;
+    static uint8_t pattern = 255;
     static unsigned long timer = 0;
 
-    if (pattern == -1 || (_pattern == 0 && millis() > timer))
+    if (groupIndex == 255 || (_pattern == 0 && millis() > timer))
     {
-        groupIndex++;
-
-        if (groupIndex >= 5)
-            groupIndex = 0;
+        groupIndex = (groupIndex < 5) ? groupIndex + 1 : 0;
 
         switch (groupIndex) {
             default:
@@ -342,7 +339,7 @@ void Patterns::cycleGroup()
 
         pattern = _menu.defaultPattern(group);
 
-        timer = millis() + 6000;// 10 seconds
+        timer = millis() + 8000; // 8 seconds
     }
 
     switch (group) {
@@ -357,17 +354,17 @@ void Patterns::cycleGroup()
         case COLOR_GROUP:
             colorGroup(pattern); break;
         default:
-            flagGroup(1); break; // FlatTop flag...
+            flagGroup(0); break; // American flag...
     }
 }
 
 void Patterns::cycleAllGroup()
 {
     static uint8_t group = 1;
-    static uint8_t pattern = -1;
+    static uint8_t pattern = 255;
     static unsigned long timer = 0;
 
-    if (pattern == -1 || (_pattern == 0 && millis() > timer))
+    if (pattern == 255 || (_pattern == 0 && millis() > timer))
     {
         pattern = (pattern == _patterns.groupPatternCount((patternGroupType)group)-1) ? 0 : pattern + 1;
 
@@ -376,7 +373,7 @@ void Patterns::cycleAllGroup()
 
         _menu.restorePattern(group, pattern);
 
-        timer = millis() + 6000;// 10 seconds
+        timer = millis() + 8000; // 8 seconds
     }
 
     switch (group) {
