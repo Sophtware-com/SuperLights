@@ -202,6 +202,8 @@ public:
     void rainbowChaseFade();
     void rainbowNightRider();
     void rainbowQuadRider();
+    void rainbowFireplace();
+    void rainbowBouncingBalls();
 
     // COLOR_GROUP
     void colorGroup();

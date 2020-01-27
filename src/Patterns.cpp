@@ -102,7 +102,7 @@ const uint8_t Patterns::groupPatternCount(patternGroupType group)
         case EMERGENCY_GROUP:
             return 5;
         case RAINBOW_GROUP:
-            return 6;
+            return 8;
         case COLOR_GROUP:
             return 10;
         case CYCLE_GROUP:
@@ -203,8 +203,8 @@ const char* Patterns::patternName(uint8_t group, uint8_t pattern)
             "rainbowChase",
             "rainbowNightRider",
             "rainbowQuadRider",
-            "6",
-            "7",
+            "rainbowFireplace",
+            "rainbowBouncingBalls",
             "8",
             "9"
         },
@@ -818,6 +818,12 @@ void Patterns::rainbowGroup(uint8_t pattern)
         case 5:
             rainbowQuadRider();
             break;
+        case 6:
+            rainbowFireplace();
+            break;
+        case 7:
+            rainbowBouncingBalls();
+            break;
     }
 }
 
@@ -904,6 +910,129 @@ void Patterns::rainbowQuadRider()
     color+=2;
 }
 
+void Patterns::rainbowFireplace()
+{
+    const int halfRing = MAX_PIXELS/2;
+    static byte heat[halfRing];
+    int cooldown;
+
+    int cd = 72; //map(_menu.currentColor(), 1, 254, 20, 100);
+    int sp = 120; //map(_menu.currentSpeed(), 1, 254, 50, 200);
+
+    // Step 1.  Cool down every cell a little
+    for( uint16_t i = 0; i < _ring.halfPixels(); i++) 
+    {
+        cooldown = random(0, ((cd * 10) / _ring.halfPixels()) + 2);
+
+        if(cooldown>heat[i]) 
+            heat[i]=0;
+        else
+            heat[i]=heat[i]-cooldown;
+    }
+
+    // Step 2.  Heat from each cell drifts 'up' and diffuses a little
+    for( int k=_ring.halfPixels() - 1; k >= 2; k--) 
+    {
+        heat[k] = (heat[k - 1] + heat[k - 2] + heat[k - 2]) / 3;
+    }
+
+    // Step 3.  Randomly ignite new 'sparks' near the bottom
+    if( random(255) < sp ) 
+    {
+        int y = random(7);
+        heat[y] = heat[y] + random(160,255);
+    }
+
+    // Step 4.  Convert heat to LED colors
+    for( uint16_t j = 0; j < _ring.halfPixels(); j++) 
+    {
+        // Scale 'heat' down from 0-255 to 0-191
+        byte t192 = map(heat[j], 0, 255, 0, 191);
+        
+        // calculate ramp up from
+        byte heatramp = t192 & 0x3F; // 0..63
+        heatramp <<= 2; // scale up to 0..252
+        
+        // figure out which third of the spectrum we're in:
+        if( t192 > 0x80) {                     // hottest
+            setPixelColor(_ring.halfPixels()-j-1, yellow(heatramp), 1, DirectionType::CW);
+            setPixelColor(_ring.halfPixels()-j-1, yellow(heatramp), 1, DirectionType::CCW);
+        } else if( t192 > 0x40 ) {             // middle
+            setPixelColor(_ring.halfPixels()-j-1, orange(heatramp), 1, DirectionType::CW);
+            setPixelColor(_ring.halfPixels()-j-1, orange(heatramp), 1, DirectionType::CCW);
+        } else {                               // coolest
+            setPixelColor(_ring.halfPixels()-j-1, red(heatramp), 1, DirectionType::CW);
+            setPixelColor(_ring.halfPixels()-j-1, red(heatramp), 1, DirectionType::CCW);
+        }
+    }
+
+    show(0);
+}
+
+void Patterns::rainbowBouncingBalls()
+{
+    const int   StartHeight = 1;
+    const float Gravity = -9.81;
+    const float ImpactVelocityStart = sqrt( -2 * Gravity * StartHeight );
+
+    static bool  init = true;
+    static uint8_t color = 0;
+
+    const uint8_t BallCount = 4;
+    static float Height[BallCount];
+    static float ImpactVelocity[BallCount];
+    static float TimeSinceLastBounce[BallCount];
+    static int   Position[BallCount];
+    static long  ClockTimeSinceLastBounce[BallCount];
+    static float Dampening[BallCount];
+
+    uint8_t brightness = _menu.currentBrightness();
+    uint8_t balls = map(_menu.currentColor(), 0, 255, 1, 4);
+
+    if (init)
+    {
+        for (int i = 0 ; i < BallCount ; i++) 
+        {  
+            ClockTimeSinceLastBounce[i] = millis();
+            Height[i] = StartHeight;
+            Position[i] = 0;
+            ImpactVelocity[i] = ImpactVelocityStart;
+            TimeSinceLastBounce[i] = 0;
+            Dampening[i] = 0.90 - float(i)/pow(BallCount,2);
+        }
+
+        init = false;
+    }
+
+    for (int i = 0 ; i < BallCount ; i++) 
+    {
+        TimeSinceLastBounce[i] =  millis() - ClockTimeSinceLastBounce[i];
+        Height[i] = 0.5 * Gravity * pow( TimeSinceLastBounce[i]/1000 , 2.0 ) + ImpactVelocity[i] * TimeSinceLastBounce[i]/1000;
+
+        if ( Height[i] < 0 ) 
+        {                     
+            Height[i] = 0;
+            ImpactVelocity[i] = Dampening[i] * ImpactVelocity[i];
+            ClockTimeSinceLastBounce[i] = millis();
+
+            if ( ImpactVelocity[i] < 0.01 ) 
+                ImpactVelocity[i] = ImpactVelocityStart;
+        }
+
+        Position[i] = round( Height[i] * (_ring.halfPixels() - 2) / StartHeight);
+    }
+
+    for (int i = 0 ; i < balls ; i++) 
+    {
+        setPixelColor(_ring.halfPixels()-Position[i]-2, toColor(color, brightness), 2, DirectionType::CW);
+        setPixelColor(_ring.halfPixels()-Position[i]-2, toColor(color, brightness), 2, DirectionType::CCW);
+    }
+
+    show(10);
+    clear();
+
+    color+=2;
+}
 
 //
 //  SOLID COLOR GROUP

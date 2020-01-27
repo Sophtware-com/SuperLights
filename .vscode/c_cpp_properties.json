@@ -7,12 +7,13 @@
             "name": "Mac",
             "macFrameworkPath": [],
             "includePath": [
-                "/Users/michael/projects/SuperLights/include",
-                "/Users/michael/projects/SuperLights/src",
+                "/Users/michael/repos/SuperLights/include",
+                "/Users/michael/repos/SuperLights/src",
                 "/Users/michael/.platformio/packages/framework-arduino-avr/libraries/EEPROM/src",
-                "/Users/michael/projects/SuperLights/.pio/libdeps/nano-old/Adafruit NeoPixel_ID28",
+                "/Users/michael/.platformio/lib/Adafruit NeoPixel_ID28",
                 "/Users/michael/.platformio/packages/framework-arduino-avr/cores/arduino",
                 "/Users/michael/.platformio/packages/framework-arduino-avr/variants/eightanaloginputs",
+                "/Users/michael/.platformio/lib/LinkedList_ID443",
                 "/Users/michael/.platformio/packages/framework-arduino-avr/libraries/HID/src",
                 "/Users/michael/.platformio/packages/framework-arduino-avr/libraries/SPI/src",
                 "/Users/michael/.platformio/packages/framework-arduino-avr/libraries/SoftwareSerial/src",
@@ -23,12 +24,13 @@
             "browse": {
                 "limitSymbolsToIncludedHeaders": true,
                 "path": [
-                    "/Users/michael/projects/SuperLights/include",
-                    "/Users/michael/projects/SuperLights/src",
+                    "/Users/michael/repos/SuperLights/include",
+                    "/Users/michael/repos/SuperLights/src",
                     "/Users/michael/.platformio/packages/framework-arduino-avr/libraries/EEPROM/src",
-                    "/Users/michael/projects/SuperLights/.pio/libdeps/nano-old/Adafruit NeoPixel_ID28",
+                    "/Users/michael/.platformio/lib/Adafruit NeoPixel_ID28",
                     "/Users/michael/.platformio/packages/framework-arduino-avr/cores/arduino",
                     "/Users/michael/.platformio/packages/framework-arduino-avr/variants/eightanaloginputs",
+                    "/Users/michael/.platformio/lib/LinkedList_ID443",
                     "/Users/michael/.platformio/packages/framework-arduino-avr/libraries/HID/src",
                     "/Users/michael/.platformio/packages/framework-arduino-avr/libraries/SPI/src",
                     "/Users/michael/.platformio/packages/framework-arduino-avr/libraries/SoftwareSerial/src",
@@ -38,7 +40,7 @@
                 ]
             },
             "defines": [
-                "PLATFORMIO=40101",
+                "PLATFORMIO=40100",
                 "ARDUINO_AVR_NANO",
                 "F_CPU=16000000L",
                 "ARDUINO_ARCH_AVR",
