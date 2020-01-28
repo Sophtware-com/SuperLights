@@ -97,22 +97,20 @@ const uint8_t Patterns::groupPatternCount(patternGroupType group)
             return 3;
         case FLAG_GROUP:
             return 8;
-        case HOLIDAY_GROUP:
-            return 7;
-        case EMERGENCY_GROUP:
-            return 5;
         case RAINBOW_GROUP:
             return 8;
         case COLOR_GROUP:
             return 10;
+        case BOUNCE_GROUP:
+             return 9;
+        case HOLIDAY_GROUP:
+            return 7;
+        case EMERGENCY_GROUP:
+            return 5;
         case CYCLE_GROUP:
             return 1;
         case CYCLE_ALL_GROUP:
             return 1;
-        // case MORSE_CODE_GROUP:
-        //     return 3;
-        // case UTILITY_GROUP:
-        //     return 5;
         default:
             return 0;
     }
@@ -125,14 +123,13 @@ const char* Patterns::groupName(uint8_t group)
     {
         "STROBE_GROUP",
         "FLAG_GROUP",
-        "HOLIDAY_GROUP",
-        "EMERGENCY_GROUP",
         "RAINBOW_GROUP",
         "COLOR_GROUP",
+        "BOUNCE_GROUP",
+        "HOLIDAY_GROUP",
+        "EMERGENCY_GROUP",
         "CYCLE_GROUP",
         "CYCLE_ALL_GROUP",
-        "MORSE_CODE_GROUP",
-        "UTILITY_GROUP",
     };
 
     strcpy_P(buffer, (char*)&(names[group]));
@@ -172,7 +169,48 @@ const char* Patterns::patternName(uint8_t group, uint8_t pattern)
             "8",
             "9"
         },
+        { // RAINBOW_GROUP
+            "rainbowFadeChase",
+            "rainbowFade",
+            "rainbowChaseFade",
+            "rainbowChase",
+            "rainbowFireplace",
+            "rainbowBouncingBalls",
+            "5",
+            "6",
+            "7",
+            "8",
+            "9"
+        },
+        { // COLOR_GROUP
+            "randomPixels",
+            "randomPixelColor",
+            "colorComet",
+            "whiteComet",
+            "flickerColor",
+            "solidColor",
+            "solidWhite",
+            "5",
+            "6",
+            "7",
+            "8",
+            "9"
+        },
+        { // BOUNCE_GROUP
+            "rainbowNightRider",
+            "rainbowQuadRider",
+            "colorNightRider",
+            "colorQuadRider",
+            "whiteNightRider",
+            "whiteQuadRider",
+            "rainbowBouncingBalls",
+            "colorBouncingBalls",
+            "whiteBouncingBalls",
+            "9"
+        },
         { // HOLIDAY_GROUP
+            "colorSparkle",
+            "fullColorSparkle"
             "christmasLights",
             "valentineLights",
             "saintPatrickLights",
@@ -180,8 +218,6 @@ const char* Patterns::patternName(uint8_t group, uint8_t pattern)
             "independenceLights",
             "halloweenLights",
             "thanksGivingLights",
-            "7",
-            "8",
             "9"
         },
         { // EMERGENCY_GROUP
@@ -196,37 +232,13 @@ const char* Patterns::patternName(uint8_t group, uint8_t pattern)
             "8",
             "9"
         },
-        { // RAINBOW_GROUP
-            "rainbowFadeChase",
-            "rainbowFade",
-            "rainbowChaseFade",
-            "rainbowChase",
-            "rainbowNightRider",
-            "rainbowQuadRider",
-            "rainbowFireplace",
-            "rainbowBouncingBalls",
-            "8",
-            "9"
-        },
-        { // COLOR_GROUP
-            "randomPixels",
-            "randomPixelColor",
-            "sparkle",
-            "fullSparkle"
-            "starBurst"
-            "nightRider",
-            "quadRider",
-            "flickerColor",
-            "solidColor",
-            "solidWhite",
-        },
         { // CYCLE_GROUP
             "cycleFavorites",
             "1",
             "2",
             "3",
             "4",
-            "5"
+            "5",
             "6",
             "7",
             "8",
@@ -238,38 +250,15 @@ const char* Patterns::patternName(uint8_t group, uint8_t pattern)
             "2",
             "3",
             "4",
-            "5"
+            "5",
             "6",
             "7",
             "8",
             "9"
         },
-        // { // MORSE_CODE_GROUP
-        //     "SOS",
-        //     "SUPER LIGHTS",
-        //     "VERSION",
-        //     "3",
-        //     "4",
-        //     "5"
-        //     "6",
-        //     "7",
-        //     "8",
-        //     "9"
-        // },
-        // { // UTILITY_GROUP
-        //     "allLedsOff",
-        //     "ledTest",
-        //     "potLevelSpeed",
-        //     "potLevelColor",
-        //     "potLevelBright",
-        //     "5",
-        //     "6",
-        //     "7",
-        //     "8",
-        //     "9"
-        // },
 
     };
+
     strcpy_P(buffer, (char*)&(names[group][pattern]));
 
     return buffer;
@@ -1439,19 +1428,35 @@ void Patterns::holidayLights(uint32_t colors[], uint16_t count)
 {
     static uint8_t ndx = 0;
 
-    uint8_t section = ((_menu.currentColor() >> 4) & 0x000E) + (count*2); // Range: count...(30+count)
-    section = section - (section % (count*2)); // Multiples of count * 2
-    uint8_t segment = section / count;
+    uint8_t speed = _menu.currentSpeed();
 
-    for (uint16_t i=0; i<count; i++)
+    if (speed > 5)
     {
-        setPixelColor(loop(i*segment,ndx,section), colors[i], _ring.halfPixels(), CW, section, segment);
-        setPixelColor(loop(i*segment,ndx,section), colors[i], _ring.halfPixels(), CCW, section, segment);
+        uint8_t section = ((_menu.currentColor() >> 4) & 0x000E) + (count*2); // Range: count...(30+count)
+        section = section - (section % (count*2)); // Multiples of count * 2
+        uint8_t segment = section / count;
+
+        for (uint16_t i=0; i<count; i++)
+        {
+            setPixelColor(loop(i*segment,ndx,section), colors[i], _ring.halfPixels(), CW, section, segment);
+            setPixelColor(loop(i*segment,ndx,section), colors[i], _ring.halfPixels(), CCW, section, segment);
+        }
+
+        ndx = inc(ndx, section);
+        
+        show(speed);
     }
+    else
+    {
+        for (uint16_t i=0; i<_ring.numPixels(); i++)
+        {
+            setPixelColorAbs(i, colors[random(0,count-1)]);
+        }
 
-    ndx = inc(ndx, section);
+        show(20);
+    }
+    
 
-    show(_menu.currentSpeed());
 }
 
 void Patterns::christmasLights()
