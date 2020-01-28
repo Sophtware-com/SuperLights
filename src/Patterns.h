@@ -120,6 +120,12 @@ public:
     // Takes a color a uniformly adjusts RGB based on brightness scale 0..255
     uint32_t adjustBrightness(uint32_t color, uint8_t brightness);
 
+    // Takes a color and scales RGB brightness based on brightness scale 0..255
+    uint32_t scaleBrightness(uint32_t color, float percentage);
+
+    // Takes an existing pixel and fades the color (brightness) towards black.
+    void fadeToBlack(uint16_t absolutePos, float percentage);
+
     // BASIC COLORS
     uint32_t black() { return 0; }
     uint32_t white(uint8_t brightness=70) { return adjustBrightness(mLeds.Color(255,255,255), brightness); }

@@ -1126,23 +1126,47 @@ void Patterns::starBurst()
 {
     static uint16_t pos = 0;
 
-    clear();
-
     uint16_t lastPixel;
     uint8_t color = _menu.currentColor();
 
-    for (int tail=16; tail>=1; tail--)
+    for (uint16_t i=0; i<_ring.numPixels(); i++)
+    {
+        if (random(10) > 5)
+            fadeToBlack(i, 0.25);
+    }
+
+    for (int tail=10; tail>=1; tail--)
     {
         lastPixel = loop(pos, tail, _ring.numPixels());
-        setPixelColor(lastPixel, toColor(color, (tail*tail)-1));
+        setPixelColor(lastPixel, toColor(color, 255));
     }
 
     show(_menu.currentSpeed());
 
-    setPixelColor(lastPixel, black());
-
     pos = inc(pos, _ring.numPixels());
 }
+
+// void Patterns::starBurst()
+// {
+//     static uint16_t pos = 0;
+
+//     clear();
+
+//     uint16_t lastPixel;
+//     uint8_t color = _menu.currentColor();
+
+//     for (int tail=16; tail>=1; tail--)
+//     {
+//         lastPixel = loop(pos, tail, _ring.numPixels());
+//         setPixelColor(lastPixel, toColor(color, (tail*tail)-1));
+//     }
+
+//     show(_menu.currentSpeed());
+
+//     setPixelColor(lastPixel, black());
+
+//     pos = inc(pos, _ring.numPixels());
+// }
 
 void Patterns::nightRider()
 {
@@ -1799,4 +1823,23 @@ uint32_t Patterns::adjustBrightness(uint32_t color, uint8_t brightness)
     uint8_t b = color & 0xFF;
 
     return rgbColor(r*scale, g*scale, b*scale);
+}
+
+uint32_t Patterns::scaleBrightness(uint32_t color, float percentage)
+{
+    if (color == 0 || (percentage < 0.0 && percentage > 1.0))
+        return color;
+
+    float scale = 1.0 - percentage;
+
+    uint8_t r = (color >> 16) & 0xFF;
+    uint8_t g = (color >> 8) & 0xFF;
+    uint8_t b = color & 0xFF;
+
+    return rgbColor(r*scale, g*scale, b*scale);
+}
+
+void Patterns::fadeToBlack(uint16_t absolutePos, float percentage) 
+{
+    mLeds.setPixelColor(absolutePos, scaleBrightness(mLeds.getPixelColor(absolutePos), percentage));
 }
