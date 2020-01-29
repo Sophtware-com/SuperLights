@@ -5,81 +5,9 @@
 Patterns _patterns(MAX_PIXELS, LED_RING_PIN);
 
 
-// THIS IS CALLED TO INITIALIZE THE RING WHEN HOLDING BOTH BUTTONS down
-// AND TURNING ON THE UNIT.
-uint16_t Patterns::initializeNumPixels(uint8_t value)
-{
-    uint16_t numPixels = min((value<<1), MAX_PIXELS); // Multiples of 2
-
-    clear();
-
-    for (uint16_t i=0; i<numPixels; i++)
-        setPixelColorAbs(i, white(60));
-
-    setPixelColorAbs(numPixels-1, red(60));
-
-    mLeds.show();
-
-    return numPixels;
-}
-
-uint8_t Patterns::initializeTopCenter(uint8_t value, uint8_t halfPixels)
-{
-    uint8_t topCenter = value; // Multiples of 2
-
-    clear();
-
-    setPixelColor(0, red(60), halfPixels);
-    setPixelColor(0, green(60), halfPixels, CCW);
-
-    mLeds.show();
-
-    return topCenter;
-}
-
-uint8_t Patterns::initializeTopQuarter(uint8_t value)
-{
-    uint8_t topQuarter = value; // Shrink to half.
-
-    clear();
-
-    setRingColor(yellow(60));
-
-    setPixelColor(0, blue(60), topQuarter);
-    setPixelColor(0, blue(60), topQuarter, CCW);
-
-    mLeds.show();
-
-    return topQuarter;
-}
-
-void Patterns::setPixelColor(uint16_t relativePos, uint32_t color, uint16_t length, DirectionType dir, uint16_t skip, uint16_t litPixels)
-{
-    for (uint16_t i=relativePos; i<min((relativePos+length), _ring.numPixels()); i+=skip)
-    {
-        uint16_t barLength = min((i+litPixels), relativePos+length);
-
-        for (uint16_t j=i; j<min(barLength, _ring.numPixels()); j++)
-        {
-            uint16_t absPos = _ring.pixel(j, dir);
-            setPixelColorAbs(absPos, color);
-        }
-    }
-}
-
-void Patterns::setRingColor(uint32_t color)
-{
-    setPixelColor(0, color, _ring.numPixels());
-}
-
-void Patterns::flash(uint8_t wait, uint32_t color)
-{
-    setRingColor(color);
-    show(wait);
-    clear();
-    show(wait);
-}
-
+//
+// GROUP & PATTERN INITI
+//
 const uint8_t Patterns::maxGroups()
 {
     return (uint8_t)patternGroupType::NUMBER_OF_GROUPS;
@@ -96,15 +24,15 @@ const uint8_t Patterns::groupPatternCount(patternGroupType group)
         case STROBE_GROUP:
             return 3;
         case FLAG_GROUP:
-            return 8;
-        case RAINBOW_GROUP:
-            return 8;
-        case COLOR_GROUP:
-            return 10;
-        case BOUNCE_GROUP:
-             return 9;
-        case HOLIDAY_GROUP:
             return 7;
+        case RAINBOW_GROUP:
+            return 4;
+        case COLOR_GROUP:
+            return 8;
+        case BOUNCE_GROUP:
+             return 5;
+        case HOLIDAY_GROUP:
+            return 8;
         case EMERGENCY_GROUP:
             return 5;
         case CYCLE_GROUP:
@@ -170,12 +98,11 @@ const char* Patterns::patternName(uint8_t group, uint8_t pattern)
             "9"
         },
         { // RAINBOW_GROUP
-            "rainbowFadeChase",
+            "rainbowFadeWave",
             "rainbowFade",
-            "rainbowChaseFade",
-            "rainbowChase",
-            "rainbowFireplace",
-            "rainbowBouncingBalls",
+            "rainbowTheaterWave",
+            "rainbowTheater",
+            "4",
             "5",
             "6",
             "7",
@@ -183,16 +110,14 @@ const char* Patterns::patternName(uint8_t group, uint8_t pattern)
             "9"
         },
         { // COLOR_GROUP
+            "onFire",
+            "comet",
             "randomPixels",
             "randomPixelColor",
-            "colorComet",
-            "whiteComet",
             "flickerColor",
+            "starBurst",
             "solidColor",
             "solidWhite",
-            "5",
-            "6",
-            "7",
             "8",
             "9"
         },
@@ -201,16 +126,15 @@ const char* Patterns::patternName(uint8_t group, uint8_t pattern)
             "rainbowQuadRider",
             "colorNightRider",
             "colorQuadRider",
-            "whiteNightRider",
-            "whiteQuadRider",
-            "rainbowBouncingBalls",
-            "colorBouncingBalls",
-            "whiteBouncingBalls",
+            "bouncingBalls",
+            "5",
+            "6",
+            "7",
+            "8",
             "9"
         },
         { // HOLIDAY_GROUP
-            "colorSparkle",
-            "fullColorSparkle"
+            "holidaySparkle",
             "christmasLights",
             "valentineLights",
             "saintPatrickLights",
@@ -218,6 +142,7 @@ const char* Patterns::patternName(uint8_t group, uint8_t pattern)
             "independenceLights",
             "halloweenLights",
             "thanksGivingLights",
+            "8",
             "9"
         },
         { // EMERGENCY_GROUP
@@ -264,6 +189,10 @@ const char* Patterns::patternName(uint8_t group, uint8_t pattern)
     return buffer;
 }
 
+
+//
+// DISPLAY PATTERNS
+//
 void Patterns::displayPattern()
 {
     displayPattern(_group);
@@ -279,17 +208,20 @@ void Patterns::displayPattern(uint8_t group)
         case FLAG_GROUP:
             flagGroup();
             break;
-        case HOLIDAY_GROUP:
-            holidayGroup();
-            break;
-        case EMERGENCY_GROUP:
-            emergencyGroup();
-            break;
         case RAINBOW_GROUP:
             rainbowGroup();
             break;
         case COLOR_GROUP:
             colorGroup();
+            break;
+        case BOUNCE_GROUP:
+            bounceGroup();
+            break;
+        case HOLIDAY_GROUP:
+            holidayGroup();
+            break;
+        case EMERGENCY_GROUP:
+            emergencyGroup();
             break;
         case CYCLE_GROUP:
             cycleGroup();
@@ -297,168 +229,9 @@ void Patterns::displayPattern(uint8_t group)
         case CYCLE_ALL_GROUP:
             cycleAllGroup();
             break;
-        // case MORSE_CODE_GROUP:
-        //     morseCodeGroup();
-        //     break;
-        // case UTILITY_GROUP:
-        //     utilityGroup();
-        //     break;
     }
 }
 
-void Patterns::cycleGroup()
-{
-    static uint8_t groupIndex = 255;
-    static patternGroupType group;
-    static uint8_t pattern = 255;
-    static unsigned long timer = 0;
-
-    if (groupIndex == 255 || (_pattern == 0 && millis() > timer))
-    {
-        groupIndex = (groupIndex < 5) ? groupIndex + 1 : 0;
-
-        switch (groupIndex) {
-            default:
-            case 0: group = patternGroupType::FLAG_GROUP; break;
-            case 1: group = patternGroupType::HOLIDAY_GROUP; break;
-            case 2: group = patternGroupType::EMERGENCY_GROUP; break;
-            case 3: group = patternGroupType::RAINBOW_GROUP; break;
-            case 4: group = patternGroupType::COLOR_GROUP; break;
-        }
-
-        pattern = _menu.defaultPattern(group);
-
-        timer = millis() + 8000; // 8 seconds
-    }
-
-    switch (group) {
-        case FLAG_GROUP:
-            flagGroup(pattern); break;
-        case HOLIDAY_GROUP:
-            holidayGroup(pattern); break;
-        case EMERGENCY_GROUP:
-            emergencyGroup(pattern); break;
-        case RAINBOW_GROUP:
-            rainbowGroup(pattern); break;
-        case COLOR_GROUP:
-            colorGroup(pattern); break;
-        default:
-            flagGroup(0); break; // American flag...
-    }
-}
-
-void Patterns::cycleAllGroup()
-{
-    static uint8_t group = 1;
-    static uint8_t pattern = 255;
-    static unsigned long timer = 0;
-
-    if (pattern == 255 || (_pattern == 0 && millis() > timer))
-    {
-        pattern = (pattern == _patterns.groupPatternCount((patternGroupType)group)-1) ? 0 : pattern + 1;
-
-        if (pattern == 0)
-            group = (group < (uint8_t)patternGroupType::COLOR_GROUP) ? group + 1 : 0;
-
-        _menu.restorePattern(group, pattern);
-
-        timer = millis() + 8000; // 8 seconds
-    }
-
-    switch (group) {
-        case FLAG_GROUP:
-            flagGroup(pattern); break;
-        case HOLIDAY_GROUP:
-            holidayGroup(pattern); break;
-        case EMERGENCY_GROUP:
-            emergencyGroup(pattern); break;
-        case RAINBOW_GROUP:
-            rainbowGroup(pattern); break;
-        case COLOR_GROUP:
-            colorGroup(pattern); break;
-        default:
-            flagGroup(0); break; // American flag on Angel frame.
-    }
-}
-
-void Patterns::utilityGroup()
-{
-    utilityGroup(_pattern);
-}
-
-void Patterns::utilityGroup(uint8_t pattern)
-{
-    switch (pattern) {
-        default:
-        case 0: // All LEDs Off
-            allLedsOff();
-            break;
-        case 1: // TEST LEDs
-            ledTest();
-            break;
-        case 2: // SPEED POT
-            potLevels(0);
-            break;
-        case 3: // COLOR POT
-            potLevels(1);
-            break;
-        case 4: // BRIGHT POT
-            potLevels(2);
-            break;
-    }
-}
-
-void Patterns::allLedsOff()
-{
-    clear();
-    show(_menu.currentSpeed());
-}
-
-void Patterns::potLevels(uint8_t pattern)
-{
-    clear();
-
-    switch (pattern) {
-        default:
-        case 0:
-            setPixelColor(0, red(), min(_menu.currentSpeed(), _ring.numPixels()));
-            break;
-        case 1:
-            setPixelColor(0, green(), min(_menu.currentColor(), _ring.numPixels()));
-            break;
-        case 2:
-            setPixelColor(0, blue(), min(_menu.currentBrightness(), _ring.numPixels()));
-            break;
-    }
-
-    show(50);
-}
-
-void Patterns::ledTest()
-{
-    ledTest(_menu.currentSpeed());
-}
-
-void Patterns::ledTest(uint8_t wait)
-{
-    setRingColor(red());
-    show(wait);
-    setRingColor(green());
-    show(wait);
-    setRingColor(blue());
-    show(wait);
-    setRingColor(white());
-    show(wait);
-    clear();
-    show(wait);
-}
-
-void Patterns::displayMode(uint8_t mode, unsigned long wait)
-{
-    setPixelColor(0, red(), 4*mode, DirectionType::CW, 4, 2);
-    show(wait);
-    clear();
-}
 
 //
 //  STROBE GROUP
@@ -561,6 +334,7 @@ void Patterns::aircraftStrobe()
     }
 }
 
+
 //
 //  FLAG GROUP
 //
@@ -624,72 +398,19 @@ void Patterns::americanFlag()
     show(_menu.currentSpeed());
 }
 
-// void Patterns::americanFlagFlatTop()
-// {
-//     uint8_t brightness = _menu.currentBrightness(190);
-
-//     setRingColor(white(brightness));
-
-//     // Blue Panel
-//     setPixelColor(12, blue(brightness), _ring.topQuarter()-12, CCW);
-
-//     static uint8_t spacing = (_ring.topQuarter()-12) / 6;
-
-//     // Stars
-//     if (twinkle())
-//         setPixelColor(spacing-1+12, white(brightness), spacing*4+2, CCW, spacing, 2);
-//     else
-//         setPixelColor(spacing-1+(spacing/2)+12, white(brightness), spacing*3+2, CCW, spacing, 2);
-
-//     // STRIPS RIGHT
-//     uint8_t stripWidth = (_ring.topQuarter()-12) / 7;
-//     uint8_t extraPixels = (_ring.topQuarter()-12) % 7;
-
-//     setPixelColor(0, red(brightness), 12, CCW);
-//     setPixelColor(0, red(brightness), 12, CW);
-
-//     uint8_t pos = 12, smallWidths = 7 - extraPixels;
-//     for (int i=0; i<7; i++)
-//     {
-//         if (smallWidths > 0)
-//         {
-//             setPixelColor(pos, (i%2 == 0) ? red(brightness) : white(brightness), stripWidth);
-//             pos += stripWidth;
-//             smallWidths--;
-//         }
-//         else
-//         {
-//             setPixelColor(pos, (i%2 == 0) ? red(brightness) : white(brightness), (stripWidth+1));
-//             pos += (stripWidth+1);
-//         }
-//     }
-
-//     // Strips Bottom
-//     stripWidth = (_ring.bottomQuarter()-12) / 6;
-//     extraPixels = (_ring.bottomQuarter()-12) % 6;
-
-//     setPixelColor(_ring.topQuarter()+stripWidth, red(brightness), _ring.bottomQuarter()-stripWidth-12, CW, stripWidth*2, stripWidth);
-//     setPixelColor(_ring.topQuarter()+stripWidth, red(brightness), _ring.bottomQuarter()-stripWidth-12, CCW, stripWidth*2, stripWidth);
-
-//     setPixelColor(_ring.halfPixels()-12, red(brightness), 12, CCW);
-//     setPixelColor(_ring.halfPixels()-12, red(brightness), 12, CW);
-
-//     show(_menu.currentSpeed());
-// }
-
-void Patterns::frenchFlag()
+void Patterns::spainFlag()
 {
     uint8_t brightness = _menu.currentBrightness();
 
     uint8_t topOffset = _ring.bottomOffset();
 
-    setPixelColor(0, red(brightness), _ring.halfPixels());
-    setPixelColor(0, blue(brightness), _ring.halfPixels(), CCW);
+    setPixelColor(0, yellow(brightness), _ring.halfPixels());
+    setPixelColor(0, yellow(brightness), _ring.halfPixels(), CCW);
 
-    setPixelColor(0, white(brightness), 12+topOffset);
-    setPixelColor(0, white(brightness), 12+topOffset, CCW);
-    setPixelColor(_ring.halfPixels()-12, white(brightness), 12);
-    setPixelColor(_ring.halfPixels()-12, white(brightness), 12, CCW);
+    setPixelColor(0, red(brightness), 12+topOffset);
+    setPixelColor(0, red(brightness), 12+topOffset, CCW);
+    setPixelColor(_ring.halfPixels()-12, red(brightness), 12);
+    setPixelColor(_ring.halfPixels()-12, red(brightness), 12, CCW);
 
     show(_menu.currentSpeed());
 }
@@ -702,6 +423,23 @@ void Patterns::mexicanFlag()
 
     setPixelColor(0, red(brightness), _ring.halfPixels());
     setPixelColor(0, green(brightness), _ring.halfPixels(), CCW);
+
+    setPixelColor(0, white(brightness), 12+topOffset);
+    setPixelColor(0, white(brightness), 12+topOffset, CCW);
+    setPixelColor(_ring.halfPixels()-12, white(brightness), 12);
+    setPixelColor(_ring.halfPixels()-12, white(brightness), 12, CCW);
+
+    show(_menu.currentSpeed());
+}
+
+void Patterns::frenchFlag()
+{
+    uint8_t brightness = _menu.currentBrightness();
+
+    uint8_t topOffset = _ring.bottomOffset();
+
+    setPixelColor(0, red(brightness), _ring.halfPixels());
+    setPixelColor(0, blue(brightness), _ring.halfPixels(), CCW);
 
     setPixelColor(0, white(brightness), 12+topOffset);
     setPixelColor(0, white(brightness), 12+topOffset, CCW);
@@ -728,6 +466,21 @@ void Patterns::canadianFlag()
     show(_menu.currentSpeed());
 }
 
+void Patterns::portugalFlag()
+{
+    uint8_t brightness = _menu.currentBrightness();
+
+    uint8_t topOffset = _ring.bottomOffset();
+
+    setPixelColor(0, red(brightness), _ring.halfPixels());
+    setPixelColor(0, green(brightness), _ring.halfPixels(), CCW);
+
+    setPixelColor(0, red(brightness), 12+topOffset, CCW);
+    setPixelColor(_ring.halfPixels()-12, red(brightness), 12, CCW);
+
+    show(_menu.currentSpeed());
+}
+
 void Patterns::rebelFlag()
 {
     uint8_t brightness = _menu.currentBrightness();
@@ -745,37 +498,6 @@ void Patterns::rebelFlag()
     show(_menu.currentSpeed());
 }
 
-void Patterns::spainFlag()
-{
-    uint8_t brightness = _menu.currentBrightness();
-
-    uint8_t topOffset = _ring.bottomOffset();
-
-    setPixelColor(0, yellow(brightness), _ring.halfPixels());
-    setPixelColor(0, yellow(brightness), _ring.halfPixels(), CCW);
-
-    setPixelColor(0, red(brightness), 12+topOffset);
-    setPixelColor(0, red(brightness), 12+topOffset, CCW);
-    setPixelColor(_ring.halfPixels()-12, red(brightness), 12);
-    setPixelColor(_ring.halfPixels()-12, red(brightness), 12, CCW);
-
-    show(_menu.currentSpeed());
-}
-
-void Patterns::portugalFlag()
-{
-    uint8_t brightness = _menu.currentBrightness();
-
-    uint8_t topOffset = _ring.bottomOffset();
-
-    setPixelColor(0, red(brightness), _ring.halfPixels());
-    setPixelColor(0, green(brightness), _ring.halfPixels(), CCW);
-
-    setPixelColor(0, red(brightness), 12+topOffset, CCW);
-    setPixelColor(_ring.halfPixels()-12, red(brightness), 12, CCW);
-
-    show(_menu.currentSpeed());
-}
 
 //
 //  RAINBOW GROUP
@@ -790,43 +512,21 @@ void Patterns::rainbowGroup(uint8_t pattern)
     switch (pattern) {
         default:
         case 0:
-            rainbowFadeChase();
+            rainbowFadeWave();
             break;
         case 1:
             rainbowFade();
             break;
         case 2:
-            rainbowChaseFade();
+            rainbowTheaterWave();
             break;
         case 3:
-            rainbowChase();
-            break;
-        case 4:
-            rainbowNightRider();
-            break;
-        case 5:
-            rainbowQuadRider();
-            break;
-        case 6:
-            rainbowFireplace();
-            break;
-        case 7:
-            rainbowBouncingBalls();
+            rainbowTheater();
             break;
     }
 }
 
-void Patterns::rainbowFade()
-{
-    static uint8_t color = 0;
-    uint8_t brightness = _menu.currentBrightness();
-
-    setRingColor(toColor(color++, brightness));
-
-    show(_menu.currentSpeed());
-}
-
-void Patterns::rainbowFadeChase()
+void Patterns::rainbowFadeWave()
 {
     static uint8_t color = 0;
     uint8_t brightness = _menu.currentBrightness();
@@ -844,24 +544,17 @@ void Patterns::rainbowFadeChase()
     show(_menu.currentSpeed());
 }
 
-void Patterns::rainbowChase()
+void Patterns::rainbowFade()
 {
-    static int q = 0;
     static uint8_t color = 0;
-
     uint8_t brightness = _menu.currentBrightness();
 
-    setPixelColor(q, toColor(color, brightness), _ring.halfPixels(), CW, 3);
-    setPixelColor(q, toColor(color, brightness), _ring.halfPixels(), CCW, 3);
+    setRingColor(toColor(color++, brightness));
 
     show(_menu.currentSpeed());
-    clear();
-
-    q = inc(q, 3);
-    color+=5;
 }
 
-void Patterns::rainbowChaseFade()
+void Patterns::rainbowTheaterWave()
 {
     static int q = 0;
     static uint8_t color = 0;
@@ -883,23 +576,65 @@ void Patterns::rainbowChaseFade()
     color+=5;
 }
 
-void Patterns::rainbowNightRider()
+void Patterns::rainbowTheater()
 {
+    static int q = 0;
     static uint8_t color = 0;
 
-    nightRider(color);
-    color+=2;
+    uint8_t brightness = _menu.currentBrightness();
+
+    setPixelColor(q, toColor(color, brightness), _ring.halfPixels(), CW, 3);
+    setPixelColor(q, toColor(color, brightness), _ring.halfPixels(), CCW, 3);
+
+    show(_menu.currentSpeed());
+    clear();
+
+    q = inc(q, 3);
+    color+=5;
 }
 
-void Patterns::rainbowQuadRider()
+
+//
+//  SOLID COLOR GROUP
+//
+void Patterns::colorGroup()
 {
-    static uint8_t color = 0;
-
-    quadRider(color);
-    color+=2;
+    colorGroup(_pattern);
 }
 
-void Patterns::rainbowFireplace()
+void Patterns::colorGroup(uint8_t pattern)
+{
+    switch (pattern)
+    {
+        case 0:
+        default:
+            onFire(); 
+            break;
+        case 1: 
+            comet(); 
+            break;
+        case 2: 
+            randomPixels(); 
+            break;
+        case 3: 
+            randomPixelsColor(); 
+            break;
+        case 4:
+            flickerColor(); 
+            break;
+        case 5:
+            solidColor(); 
+            break;
+        case 6:
+            starBurst(); 
+            break;
+        case 7:
+            solidWhite(); 
+            break;
+    }
+}
+
+void Patterns::onFire()
 {
     const int halfRing = MAX_PIXELS/2;
     static byte heat[halfRing];
@@ -958,105 +693,28 @@ void Patterns::rainbowFireplace()
     show(0);
 }
 
-void Patterns::rainbowBouncingBalls()
+void Patterns::comet()
 {
-    const int   StartHeight = 1;
-    const float Gravity = -9.81;
-    const float ImpactVelocityStart = sqrt( -2 * Gravity * StartHeight );
+    static uint16_t pos = 0;
 
-    static bool  init = true;
-    static uint8_t color = 0;
+    uint16_t lastPixel;
+    uint8_t color = _menu.currentColor();
 
-    const uint8_t BallCount = 4;
-    static float Height[BallCount];
-    static float ImpactVelocity[BallCount];
-    static float TimeSinceLastBounce[BallCount];
-    static int   Position[BallCount];
-    static long  ClockTimeSinceLastBounce[BallCount];
-    static float Dampening[BallCount];
-
-    uint8_t brightness = _menu.currentBrightness();
-    uint8_t balls = map(_menu.currentColor(), 0, 255, 1, 4);
-
-    if (init)
+    for (uint16_t i=0; i<_ring.numPixels(); i++)
     {
-        for (int i = 0 ; i < BallCount ; i++) 
-        {  
-            ClockTimeSinceLastBounce[i] = millis();
-            Height[i] = StartHeight;
-            Position[i] = 0;
-            ImpactVelocity[i] = ImpactVelocityStart;
-            TimeSinceLastBounce[i] = 0;
-            Dampening[i] = 0.90 - float(i)/pow(BallCount,2);
-        }
-
-        init = false;
+        if (random(10) > 5)
+            fadeToBlack(i, 0.25);
     }
 
-    for (int i = 0 ; i < BallCount ; i++) 
+    for (int tail=10; tail>=1; tail--)
     {
-        TimeSinceLastBounce[i] =  millis() - ClockTimeSinceLastBounce[i];
-        Height[i] = 0.5 * Gravity * pow( TimeSinceLastBounce[i]/1000 , 2.0 ) + ImpactVelocity[i] * TimeSinceLastBounce[i]/1000;
-
-        if ( Height[i] < 0 ) 
-        {                     
-            Height[i] = 0;
-            ImpactVelocity[i] = Dampening[i] * ImpactVelocity[i];
-            ClockTimeSinceLastBounce[i] = millis();
-
-            if ( ImpactVelocity[i] < 0.01 ) 
-                ImpactVelocity[i] = ImpactVelocityStart;
-        }
-
-        Position[i] = round( Height[i] * (_ring.halfPixels() - 2) / StartHeight);
+        lastPixel = loop(pos, tail, _ring.numPixels());
+        setPixelColor(lastPixel, toColor(color, 255));
     }
 
-    for (int i = 0 ; i < balls ; i++) 
-    {
-        setPixelColor(_ring.halfPixels()-Position[i]-2, toColor(color, brightness), 2, DirectionType::CW);
-        setPixelColor(_ring.halfPixels()-Position[i]-2, toColor(color, brightness), 2, DirectionType::CCW);
-    }
+    show(_menu.currentSpeed());
 
-    show(10);
-    clear();
-
-    color+=2;
-}
-
-//
-//  SOLID COLOR GROUP
-//
-void Patterns::colorGroup()
-{
-    colorGroup(_pattern);
-}
-
-void Patterns::colorGroup(uint8_t pattern)
-{
-    switch (pattern)
-    {
-        case 0: // RANDOM PIXELS LIT
-        default:
-            randomPixels(); break;
-        case 1: // RANDOM PIXELS W/BACKGROUND
-            randomPixelsColor(); break;
-        case 2: // SPARKLE
-            sparkle(); break;
-        case 3: // FULL SPARKLE
-            fullSparkle(); break;
-        case 4: // STAR BURST
-            starBurst(); break;
-        case 5: // NIGHT RIDER
-            nightRider(); break;
-        case 6: // QUAD RIDER
-            quadRider(); break;
-        case 7: // ALL PIXELS FLICKERING
-            flickerColor(); break;
-        case 8: // COLOR KNOB CONTROLLED
-            solidColor(); break;
-        case 9: // WHITE ONLY
-            solidWhite(); break;
-    }
+    pos = inc(pos, _ring.numPixels());
 }
 
 void Patterns::randomPixels()
@@ -1091,75 +749,103 @@ void Patterns::flickerColor()
     }
 }
 
-void Patterns::sparkle()
-{
-    uint8_t bright = _menu.currentBrightness();
-
-    for (uint16_t i=0; i<_ring.numPixels(); i++)
-        setPixelColor(i, (uint32_t)(random(0, 100) > 50 ? toColor(random(1, 255), bright) : 0));
-
-    show(_menu.currentSpeed());
-}
-
-void Patterns::fullSparkle()
-{
-    uint8_t bright = _menu.currentBrightness();
-
-    for (uint16_t i=0; i<_ring.numPixels(); i++)
-        setPixelColor(i, toColor(random(1, 255), bright));
-
-    show(_menu.currentSpeed());
-}
-
 void Patterns::starBurst()
 {
     static uint16_t pos = 0;
 
+    clear();
+
     uint16_t lastPixel;
     uint8_t color = _menu.currentColor();
 
-    for (uint16_t i=0; i<_ring.numPixels(); i++)
-    {
-        if (random(10) > 5)
-            fadeToBlack(i, 0.25);
-    }
-
-    for (int tail=10; tail>=1; tail--)
+    for (int tail=16; tail>=1; tail--)
     {
         lastPixel = loop(pos, tail, _ring.numPixels());
-        setPixelColor(lastPixel, toColor(color, 255));
+        setPixelColor(lastPixel, toColor(color, (tail*tail)-1));
     }
 
     show(_menu.currentSpeed());
 
+    setPixelColor(lastPixel, black());
+
     pos = inc(pos, _ring.numPixels());
 }
 
-// void Patterns::starBurst()
-// {
-//     static uint16_t pos = 0;
+void Patterns::solidColor()
+{
+  if (twinkle() || _menu.currentSpeed() < 5)
+      setRingColor(toColor(_menu.currentColor(), _menu.currentBrightness()));
+  else
+      clear();
 
-//     clear();
+  show(_menu.currentSpeed());
+}
 
-//     uint16_t lastPixel;
-//     uint8_t color = _menu.currentColor();
+void Patterns::solidWhite()
+{
+  if (twinkle() || _menu.currentSpeed() < 5)
+      setRingColor(white(_menu.currentBrightness()));
+  else
+      clear();
 
-//     for (int tail=16; tail>=1; tail--)
-//     {
-//         lastPixel = loop(pos, tail, _ring.numPixels());
-//         setPixelColor(lastPixel, toColor(color, (tail*tail)-1));
-//     }
+  show(_menu.currentSpeed());
+}
 
-//     show(_menu.currentSpeed());
 
-//     setPixelColor(lastPixel, black());
+//
+//  BOUNCE GROUP
+//
+void Patterns::bounceGroup()
+{
+    bounceGroup(_pattern);
+}
 
-//     pos = inc(pos, _ring.numPixels());
-// }
+void Patterns::bounceGroup(uint8_t pattern)
+{
+    switch (pattern) {
+        default:
+        case 0:
+            rainbowNightRider();
+            break;
+        case 1:
+            rainbowQuadRider();
+            break;
+        case 2:
+            colorNightRider();
+            break;
+        case 3:
+            colorQuadRider();
+            break;
+        case 4:
+            bouncingBalls();
+            break;
+    }
+}
 
-void Patterns::nightRider()
+void Patterns::rainbowNightRider()
+{
+    static uint8_t color = 0;
+
+    nightRider(color);
+    color+=2;
+}
+
+void Patterns::rainbowQuadRider()
+{
+    static uint8_t color = 0;
+
+    quadRider(color);
+    color+=2;
+}
+
+void Patterns::colorNightRider()
 {
     nightRider(_menu.currentColor());
+}
+
+void Patterns::colorQuadRider()
+{
+    quadRider(_menu.currentColor());
 }
 
 void Patterns::nightRider(uint8_t color)
@@ -1173,15 +859,11 @@ void Patterns::nightRider(uint8_t color)
         uint8_t bright = max(((i*i)+1), 4);
         setPixelColor(comet2[i].x, toColor(color, bright), 1);
         setPixelColor(comet2[i].x, toColor(color, bright), 1, CCW);
+
         bounce(&comet2[i].x, &comet2[i].cw, lastPixel);
     }
 
     show(_menu.currentSpeed());
-}
-
-void Patterns::quadRider()
-{
-    quadRider(_menu.currentColor());
 }
 
 void Patterns::quadRider(uint8_t color)
@@ -1203,6 +885,70 @@ void Patterns::quadRider(uint8_t color)
     }
 
     show(_menu.currentSpeed());
+}
+
+void Patterns::bouncingBalls()
+{
+    const int   StartHeight = 1;
+    const float Gravity = -9.81;
+    const float ImpactVelocityStart = sqrt( -2 * Gravity * StartHeight );
+
+    static uint8_t color = 0;
+
+    const uint8_t BallCount = 4;
+    static float Height[BallCount];
+    static float ImpactVelocity[BallCount];
+    static float TimeSinceLastBounce[BallCount];
+    static int   Position[BallCount];
+    static long  ClockTimeSinceLastBounce[BallCount];
+    static float Dampening[BallCount];
+
+    uint8_t brightness = _menu.currentBrightness();
+    uint8_t balls = map(_menu.currentColor(), 0, 255, 1, 4);
+
+    if (mInit)
+    {
+        for (int i = 0 ; i < BallCount ; i++) 
+        {  
+            ClockTimeSinceLastBounce[i] = millis();
+            Height[i] = StartHeight;
+            Position[i] = 0;
+            ImpactVelocity[i] = ImpactVelocityStart;
+            TimeSinceLastBounce[i] = 0;
+            Dampening[i] = 0.90 - float(i)/pow(BallCount,2);
+        }
+
+        mInit = false;
+    }
+
+    for (int i = 0 ; i < BallCount ; i++) 
+    {
+        TimeSinceLastBounce[i] =  millis() - ClockTimeSinceLastBounce[i];
+        Height[i] = 0.5 * Gravity * pow( TimeSinceLastBounce[i]/1000 , 2.0 ) + ImpactVelocity[i] * TimeSinceLastBounce[i]/1000;
+
+        if ( Height[i] < 0 ) 
+        {                     
+            Height[i] = 0;
+            ImpactVelocity[i] = Dampening[i] * ImpactVelocity[i];
+            ClockTimeSinceLastBounce[i] = millis();
+
+            if ( ImpactVelocity[i] < 0.01 ) 
+                ImpactVelocity[i] = ImpactVelocityStart;
+        }
+
+        Position[i] = round( Height[i] * (_ring.halfPixels() - 2) / StartHeight);
+    }
+
+    for (int i = 0 ; i < balls ; i++) 
+    {
+        setPixelColor(_ring.halfPixels()-Position[i]-2, toColor(color, brightness), 2, DirectionType::CW);
+        setPixelColor(_ring.halfPixels()-Position[i]-2, toColor(color, brightness), 2, DirectionType::CCW);
+    }
+
+    show(10);
+    clear();
+
+    color+=2;
 }
 
 void Patterns::bounce(uint16_t *pos, bool *direction, uint16_t lastPixel)
@@ -1228,25 +974,189 @@ void Patterns::bounce(uint16_t *pos, bool *direction, uint16_t lastPixel)
     }
 }
 
-void Patterns::solidColor()
-{
-  if (twinkle() || _menu.currentSpeed() < 5)
-      setRingColor(toColor(_menu.currentColor(), _menu.currentBrightness()));
-  else
-      clear();
 
-  show(_menu.currentSpeed());
+//
+//  HOLIDAY LIGHTS GROUP
+//
+void Patterns::holidayGroup()
+{
+    holidayGroup(_pattern);
 }
 
-void Patterns::solidWhite()
+void Patterns::holidayGroup(uint8_t pattern)
 {
-  if (twinkle() || _menu.currentSpeed() < 5)
-      setRingColor(white(_menu.currentBrightness()));
-  else
-      clear();
-
-  show(_menu.currentSpeed());
+    switch (pattern) {
+        default:
+        case 0:
+            holidaySparkle(); 
+            break;
+        case 1:
+            christmasLights();
+            break;
+        case 2:
+            valentineLights();
+            break;
+        case 3:
+            saintPatrickLights();
+            break;
+        case 4:
+            easterLights();
+            break;
+        case 5:
+            independenceLights();
+            break;
+        case 6:
+            halloweenLights();
+            break;
+        case 7:
+            thanksGivingLights();
+            break;
+    }
 }
+
+void Patterns::holidayLights(uint32_t colors[], uint16_t count)
+{
+    static uint8_t ndx = 0;
+
+    uint8_t speed = _menu.currentSpeed();
+
+    if (speed > 5)
+    {
+        uint8_t section = ((_menu.currentColor() >> 4) & 0x000E) + (count*2); // Range: count...(30+count)
+        section = section - (section % (count*2)); // Multiples of count * 2
+        uint8_t segment = section / count;
+
+        for (uint16_t i=0; i<count; i++)
+        {
+            setPixelColor(loop(i*segment,ndx,section), colors[i], _ring.halfPixels(), CW, section, segment);
+            setPixelColor(loop(i*segment,ndx,section), colors[i], _ring.halfPixels(), CCW, section, segment);
+        }
+
+        ndx = inc(ndx, section);
+        
+        show(speed);
+    }
+    else
+    {
+        for (uint16_t i=0; i<_ring.numPixels(); i++)
+        {
+            setPixelColorAbs(i, colors[random(0,count)]);
+        }
+
+        show(120);
+    }
+}
+
+void Patterns::holidaySparkle()
+{
+    uint8_t bright = _menu.currentBrightness();
+
+    // Turning the color/size knob will control how many 'black' pixels are included.
+    uint8_t color = map(_menu.currentColor(), 0, 254, 1, 100);
+
+    for (uint16_t i=0; i<_ring.numPixels(); i++)
+        setPixelColor(i, (uint32_t)(random(0, 100) > color ? toColor(random(1, 255), bright) : 0));
+
+    show(_menu.currentSpeed());
+}
+
+void Patterns::christmasLights()
+{
+    uint8_t brightness = _menu.currentBrightness();
+
+    uint32_t colors[] =
+    {
+        green(brightness),
+        orange(brightness),
+        blue(brightness),
+        yellow(brightness),
+        red(brightness)
+    };
+
+    holidayLights(colors, sizeof(colors)/sizeof(uint32_t));
+}
+
+void Patterns::valentineLights()
+{
+    uint8_t brightness = _menu.currentBrightness();
+
+    uint32_t colors[] =
+    {
+        red(brightness),
+        white(brightness/4)
+    };
+
+    holidayLights(colors, sizeof(colors)/sizeof(uint32_t));
+}
+
+void Patterns::halloweenLights()
+{
+    uint8_t brightness = _menu.currentBrightness();
+
+    uint32_t colors[] =
+    {
+        green(brightness),
+        orange(brightness),
+        white(brightness/4)
+    };
+
+    holidayLights(colors, sizeof(colors)/sizeof(uint32_t));
+}
+
+void Patterns::easterLights()
+{
+    uint8_t brightness = _menu.currentBrightness();
+
+    uint32_t colors[] =
+    {
+        yellow(brightness),
+        purple(brightness),
+        white(brightness/4)
+    };
+
+    holidayLights(colors, sizeof(colors)/sizeof(uint32_t));
+}
+
+void Patterns::independenceLights()
+{
+    uint8_t brightness = _menu.currentBrightness();
+
+    uint32_t colors[] =
+    {
+        red(brightness),
+        white(brightness/4),
+        blue(brightness)
+    };
+
+    holidayLights(colors, sizeof(colors)/sizeof(uint32_t));
+}
+
+void Patterns::saintPatrickLights()
+{
+    uint8_t brightness = _menu.currentBrightness();
+
+    uint32_t colors[] =
+    {
+        green(brightness),
+        white(brightness/4)
+    };
+
+    holidayLights(colors, sizeof(colors)/sizeof(uint32_t));
+}
+
+void Patterns::thanksGivingLights()
+{
+    uint8_t brightness = _menu.currentBrightness();
+
+    uint32_t colors[] =
+    {
+        orange(brightness),
+        white(brightness/4)
+    };
+
+    holidayLights(colors, sizeof(colors)/sizeof(uint32_t));
+}
+
 
 //
 //  EMERGENCY GROUP
@@ -1388,173 +1298,288 @@ void Patterns::chaseLights(uint32_t colors[], uint16_t count)
     show(_menu.currentSpeed());
 }
 
-//
-//  HOLIDAY LIGHTS GROUP
-//
-void Patterns::holidayGroup()
-{
-    holidayGroup(_pattern);
-}
 
-void Patterns::holidayGroup(uint8_t pattern)
+//
+// CYCLE FAVORITES GROUP
+//
+void Patterns::cycleGroup()
 {
-    switch (pattern) {
+    static uint8_t groupIndex = 255;
+    static patternGroupType group;
+    static uint8_t pattern = 255;
+    static unsigned long timer = 0;
+
+    if (groupIndex == 255 || (_pattern == 0 && millis() > timer))
+    {
+        groupIndex = (groupIndex < 5) ? groupIndex + 1 : 0;
+
+        switch (groupIndex) {
+            default:
+            case 0: group = patternGroupType::FLAG_GROUP; break;
+            case 1: group = patternGroupType::HOLIDAY_GROUP; break;
+            case 2: group = patternGroupType::EMERGENCY_GROUP; break;
+            case 3: group = patternGroupType::RAINBOW_GROUP; break;
+            case 4: group = patternGroupType::COLOR_GROUP; break;
+        }
+
+        pattern = _menu.defaultPattern(group);
+
+        timer = millis() + 8000; // 8 seconds
+    }
+
+    switch (group) {
+        case FLAG_GROUP:
+            flagGroup(pattern); break;
+        case HOLIDAY_GROUP:
+            holidayGroup(pattern); break;
+        case EMERGENCY_GROUP:
+            emergencyGroup(pattern); break;
+        case RAINBOW_GROUP:
+            rainbowGroup(pattern); break;
+        case COLOR_GROUP:
+            colorGroup(pattern); break;
         default:
-        case 0:
-            christmasLights();
-            break;
-        case 1:
-            valentineLights();
-            break;
-        case 2:
-            saintPatrickLights();
-            break;
-        case 3:
-            easterLights();
-            break;
-        case 4:
-            independenceLights();
-            break;
-        case 5:
-            halloweenLights();
-            break;
-        case 6:
-            thanksGivingLights();
-            break;
+            flagGroup(0); break; // American flag...
     }
 }
 
-void Patterns::holidayLights(uint32_t colors[], uint16_t count)
+
+//
+// CYCLE ALL PATTERNS GROUP
+//
+void Patterns::cycleAllGroup()
 {
-    static uint8_t ndx = 0;
+    static uint8_t group = 1;
+    static uint8_t pattern = 255;
+    static unsigned long timer = 0;
 
-    uint8_t speed = _menu.currentSpeed();
-
-    if (speed > 5)
+    if (pattern == 255 || (_pattern == 0 && millis() > timer))
     {
-        uint8_t section = ((_menu.currentColor() >> 4) & 0x000E) + (count*2); // Range: count...(30+count)
-        section = section - (section % (count*2)); // Multiples of count * 2
-        uint8_t segment = section / count;
+        pattern = (pattern == _patterns.groupPatternCount((patternGroupType)group)-1) ? 0 : pattern + 1;
 
-        for (uint16_t i=0; i<count; i++)
+        if (pattern == 0)
+            group = (group < (uint8_t)patternGroupType::COLOR_GROUP) ? group + 1 : 0;
+
+        _menu.restorePattern(group, pattern);
+
+        timer = millis() + 8000; // 8 seconds
+    }
+
+    switch (group) {
+        case FLAG_GROUP:
+            flagGroup(pattern); break;
+        case HOLIDAY_GROUP:
+            holidayGroup(pattern); break;
+        case EMERGENCY_GROUP:
+            emergencyGroup(pattern); break;
+        case RAINBOW_GROUP:
+            rainbowGroup(pattern); break;
+        case COLOR_GROUP:
+            colorGroup(pattern); break;
+        default:
+            flagGroup(0); break; // American flag on Angel frame.
+    }
+}
+
+
+// DISPLAY LED TEST PATTERNS
+void Patterns::ledTest()
+{
+    ledTest(_menu.currentSpeed());
+}
+
+void Patterns::ledTest(uint8_t wait)
+{
+    setRingColor(red());
+    show(wait);
+    setRingColor(green());
+    show(wait);
+    setRingColor(blue());
+    show(wait);
+    setRingColor(white());
+    show(wait);
+    clear();
+    show(wait);
+}
+
+// DISPLAY THE BOOT MODE ON THE RING
+void Patterns::displayMode(uint8_t mode, unsigned long wait)
+{
+    setPixelColor(0, red(), 4*mode, DirectionType::CW, 4, 2);
+    show(wait);
+    clear();
+}
+
+// THIS IS CALLED TO INITIALIZE THE RING WHEN HOLDING BOTH BUTTONS down
+// AND TURNING ON THE UNIT.
+uint16_t Patterns::initializeNumPixels(uint8_t value)
+{
+    uint16_t numPixels = min((value<<1), MAX_PIXELS); // Multiples of 2
+
+    clear();
+
+    for (uint16_t i=0; i<numPixels; i++)
+        setPixelColorAbs(i, white(60));
+
+    setPixelColorAbs(numPixels-1, red(60));
+
+    mLeds.show();
+
+    return numPixels;
+}
+
+uint8_t Patterns::initializeTopCenter(uint8_t value, uint8_t halfPixels)
+{
+    uint8_t topCenter = value; // Multiples of 2
+
+    clear();
+
+    setPixelColor(0, red(60), halfPixels);
+    setPixelColor(0, green(60), halfPixels, CCW);
+
+    mLeds.show();
+
+    return topCenter;
+}
+
+uint8_t Patterns::initializeTopQuarter(uint8_t value)
+{
+    uint8_t topQuarter = value; // Shrink to half.
+
+    clear();
+
+    setRingColor(yellow(60));
+
+    setPixelColor(0, blue(60), topQuarter);
+    setPixelColor(0, blue(60), topQuarter, CCW);
+
+    mLeds.show();
+
+    return topQuarter;
+}
+
+void Patterns::setPixelColor(uint16_t relativePos, uint32_t color, uint16_t length, DirectionType dir, uint16_t skip, uint16_t litPixels)
+{
+    for (uint16_t i=relativePos; i<min((relativePos+length), _ring.numPixels()); i+=skip)
+    {
+        uint16_t barLength = min((i+litPixels), relativePos+length);
+
+        for (uint16_t j=i; j<min(barLength, _ring.numPixels()); j++)
         {
-            setPixelColor(loop(i*segment,ndx,section), colors[i], _ring.halfPixels(), CW, section, segment);
-            setPixelColor(loop(i*segment,ndx,section), colors[i], _ring.halfPixels(), CCW, section, segment);
+            uint16_t absPos = _ring.pixel(j, dir);
+            setPixelColorAbs(absPos, color);
         }
-
-        ndx = inc(ndx, section);
-        
-        show(speed);
     }
-    else
-    {
-        for (uint16_t i=0; i<_ring.numPixels(); i++)
-        {
-            setPixelColorAbs(i, colors[random(0,count-1)]);
-        }
+}
 
-        show(20);
+void Patterns::setRingColor(uint32_t color)
+{
+    setPixelColor(0, color, _ring.numPixels());
+}
+
+void Patterns::flash(uint8_t wait, uint32_t color)
+{
+    setRingColor(color);
+    show(wait);
+    clear();
+    show(wait);
+}
+
+// Input a value 0 to 255 to get a color value. There are 85 transitions
+// between each primary color (RGB).
+// The colours are a transition r - g - b - back to r.
+uint32_t Patterns::colorWheel(byte WheelPos)
+{
+    WheelPos = 255 - WheelPos;
+
+    if (WheelPos <= 85)
+        return rgbColor(255 - WheelPos * 3, 0, WheelPos * 3);
+
+    if (WheelPos <= 170)
+    {
+        WheelPos -= 85;
+        return rgbColor(0, WheelPos * 3, 255 - WheelPos * 3);
     }
-    
 
+    WheelPos -= 170;
+
+    return rgbColor(WheelPos * 3, 255 - WheelPos * 3, 0);
 }
 
-void Patterns::christmasLights()
+// Input a value 0 to 255 to get a color value. There are 85 transitions
+// between each primary color (RGB).
+// The colours are a transition r - g - b - back to r.
+uint32_t Patterns::colorWheel2(byte WheelPos)
 {
-    uint8_t brightness = _menu.currentBrightness();
+    if (WheelPos < 43) // Red to Yellow
+        return rgbColor(252, WheelPos * 6, 0);
 
-    uint32_t colors[] =
+    if (WheelPos <= 85) // Yellow to Green
     {
-        green(brightness),
-        orange(brightness),
-        blue(brightness),
-        yellow(brightness),
-        red(brightness)
-    };
+        WheelPos -= 43;
+        return rgbColor(252 - WheelPos * 6, 252, 0);
+    }
 
-    holidayLights(colors, sizeof(colors)/sizeof(uint32_t));
+    if (WheelPos < 128) // Green to Cyan
+    {
+        WheelPos -= 85;
+        return rgbColor(0, 252, WheelPos * 6);
+    }
+
+    if (WheelPos <= 170) // Cyan to Blue
+    {
+        WheelPos -= 128;
+        return rgbColor(0, 252 - WheelPos * 6, 252);
+    }
+
+    if (WheelPos < 212) // Blue to Magenta
+    {
+        WheelPos -= 169;
+        return rgbColor(WheelPos * 6, 0, 252);
+    }
+
+    WheelPos -= 213; // Magenta to Red
+
+    return rgbColor(252, 0, 252 - WheelPos * 6);
 }
 
-void Patterns::halloweenLights()
+uint32_t Patterns::adjustBrightness(uint32_t color, uint8_t brightness)
 {
-    uint8_t brightness = _menu.currentBrightness();
+    float scale = brightness / 255.0;
 
-    uint32_t colors[] =
-    {
-        green(brightness),
-        orange(brightness),
-        white(brightness/4)
-    };
+    // Allow for FULL brightness.
+    scale = (scale >= 0.95) ? 1.0 : scale;
 
-    holidayLights(colors, sizeof(colors)/sizeof(uint32_t));
+    uint8_t r = (color >> 16) & 0xFF;
+    uint8_t g = (color >> 8) & 0xFF;
+    uint8_t b = color & 0xFF;
+
+    return rgbColor(r*scale, g*scale, b*scale);
 }
 
-void Patterns::easterLights()
+uint32_t Patterns::scaleBrightness(uint32_t color, float percentage)
 {
-    uint8_t brightness = _menu.currentBrightness();
+    if (color == 0 || (percentage < 0.0 && percentage > 1.0))
+        return color;
 
-    uint32_t colors[] =
-    {
-        yellow(brightness),
-        purple(brightness),
-        white(brightness/4)
-    };
+    float scale = 1.0 - percentage;
 
-    holidayLights(colors, sizeof(colors)/sizeof(uint32_t));
+    uint8_t r = (color >> 16) & 0xFF;
+    uint8_t g = (color >> 8) & 0xFF;
+    uint8_t b = color & 0xFF;
+
+    return rgbColor(r*scale, g*scale, b*scale);
 }
 
-void Patterns::valentineLights()
+void Patterns::fadeToBlack(uint16_t absolutePos, float percentage) 
 {
-    uint8_t brightness = _menu.currentBrightness();
-
-    uint32_t colors[] =
-    {
-        red(brightness),
-        white(brightness/4)
-    };
-
-    holidayLights(colors, sizeof(colors)/sizeof(uint32_t));
+    mLeds.setPixelColor(absolutePos, scaleBrightness(mLeds.getPixelColor(absolutePos), percentage));
 }
 
-void Patterns::independenceLights()
-{
-    uint8_t brightness = _menu.currentBrightness();
 
-    uint32_t colors[] =
-    {
-        red(brightness),
-        white(brightness/4),
-        blue(brightness)
-    };
-
-    holidayLights(colors, sizeof(colors)/sizeof(uint32_t));
-}
-
-void Patterns::saintPatrickLights()
-{
-    uint8_t brightness = _menu.currentBrightness();
-
-    uint32_t colors[] =
-    {
-        green(brightness),
-        white(brightness/4)
-    };
-
-    holidayLights(colors, sizeof(colors)/sizeof(uint32_t));
-}
-
-void Patterns::thanksGivingLights()
-{
-    uint8_t brightness = _menu.currentBrightness();
-
-    uint32_t colors[] =
-    {
-        orange(brightness),
-        white(brightness/4)
-    };
-
-    holidayLights(colors, sizeof(colors)/sizeof(uint32_t));
-}
+/////////////////////////////
+// UNUSED CODE - FOR NOW
+/////////////////////////////
 
 //
 // MORSE CODE GROUP
@@ -1758,93 +1783,109 @@ void Patterns::thanksGivingLights()
 //         line = 0;
 // }
 
-// Input a value 0 to 255 to get a color value. There are 85 transitions
-// between each primary color (RGB).
-// The colours are a transition r - g - b - back to r.
-uint32_t Patterns::colorWheel(byte WheelPos)
-{
-    WheelPos = 255 - WheelPos;
 
-    if (WheelPos <= 85)
-        return rgbColor(255 - WheelPos * 3, 0, WheelPos * 3);
+// void Patterns::utilityGroup()
+// {
+//     utilityGroup(_pattern);
+// }
 
-    if (WheelPos <= 170)
-    {
-        WheelPos -= 85;
-        return rgbColor(0, WheelPos * 3, 255 - WheelPos * 3);
-    }
+// void Patterns::utilityGroup(uint8_t pattern)
+// {
+//     switch (pattern) {
+//         default:
+//         case 0: // All LEDs Off
+//             allLedsOff();
+//             break;
+//         case 1: // TEST LEDs
+//             ledTest();
+//             break;
+//         case 2: // SPEED POT
+//             potLevels(0);
+//             break;
+//         case 3: // COLOR POT
+//             potLevels(1);
+//             break;
+//         case 4: // BRIGHT POT
+//             potLevels(2);
+//             break;
+//     }
+// }
 
-    WheelPos -= 170;
+// void Patterns::allLedsOff()
+// {
+//     clear();
+//     show(_menu.currentSpeed());
+// }
 
-    return rgbColor(WheelPos * 3, 255 - WheelPos * 3, 0);
-}
+// void Patterns::potLevels(uint8_t pattern)
+// {
+//     clear();
 
-// Input a value 0 to 255 to get a color value. There are 85 transitions
-// between each primary color (RGB).
-// The colours are a transition r - g - b - back to r.
-uint32_t Patterns::colorWheel2(byte WheelPos)
-{
-    if (WheelPos < 43) // Red to Yellow
-        return rgbColor(252, WheelPos * 6, 0);
+//     switch (pattern) {
+//         default:
+//         case 0:
+//             setPixelColor(0, red(), min(_menu.currentSpeed(), _ring.numPixels()));
+//             break;
+//         case 1:
+//             setPixelColor(0, green(), min(_menu.currentColor(), _ring.numPixels()));
+//             break;
+//         case 2:
+//             setPixelColor(0, blue(), min(_menu.currentBrightness(), _ring.numPixels()));
+//             break;
+//     }
 
-    if (WheelPos <= 85) // Yellow to Green
-    {
-        WheelPos -= 43;
-        return rgbColor(252 - WheelPos * 6, 252, 0);
-    }
+//     show(50);
+// }
 
-    if (WheelPos < 128) // Green to Cyan
-    {
-        WheelPos -= 85;
-        return rgbColor(0, 252, WheelPos * 6);
-    }
+// void Patterns::americanFlagFlatTop()
+// {
+//     uint8_t brightness = _menu.currentBrightness(190);
 
-    if (WheelPos <= 170) // Cyan to Blue
-    {
-        WheelPos -= 128;
-        return rgbColor(0, 252 - WheelPos * 6, 252);
-    }
+//     setRingColor(white(brightness));
 
-    if (WheelPos < 212) // Blue to Magenta
-    {
-        WheelPos -= 169;
-        return rgbColor(WheelPos * 6, 0, 252);
-    }
+//     // Blue Panel
+//     setPixelColor(12, blue(brightness), _ring.topQuarter()-12, CCW);
 
-    WheelPos -= 213; // Magenta to Red
+//     static uint8_t spacing = (_ring.topQuarter()-12) / 6;
 
-    return rgbColor(252, 0, 252 - WheelPos * 6);
-}
+//     // Stars
+//     if (twinkle())
+//         setPixelColor(spacing-1+12, white(brightness), spacing*4+2, CCW, spacing, 2);
+//     else
+//         setPixelColor(spacing-1+(spacing/2)+12, white(brightness), spacing*3+2, CCW, spacing, 2);
 
-uint32_t Patterns::adjustBrightness(uint32_t color, uint8_t brightness)
-{
-    float scale = brightness / 255.0;
+//     // STRIPS RIGHT
+//     uint8_t stripWidth = (_ring.topQuarter()-12) / 7;
+//     uint8_t extraPixels = (_ring.topQuarter()-12) % 7;
 
-    // Allow for FULL brightness.
-    scale = (scale >= 0.95) ? 1.0 : scale;
+//     setPixelColor(0, red(brightness), 12, CCW);
+//     setPixelColor(0, red(brightness), 12, CW);
 
-    uint8_t r = (color >> 16) & 0xFF;
-    uint8_t g = (color >> 8) & 0xFF;
-    uint8_t b = color & 0xFF;
+//     uint8_t pos = 12, smallWidths = 7 - extraPixels;
+//     for (int i=0; i<7; i++)
+//     {
+//         if (smallWidths > 0)
+//         {
+//             setPixelColor(pos, (i%2 == 0) ? red(brightness) : white(brightness), stripWidth);
+//             pos += stripWidth;
+//             smallWidths--;
+//         }
+//         else
+//         {
+//             setPixelColor(pos, (i%2 == 0) ? red(brightness) : white(brightness), (stripWidth+1));
+//             pos += (stripWidth+1);
+//         }
+//     }
 
-    return rgbColor(r*scale, g*scale, b*scale);
-}
+//     // Strips Bottom
+//     stripWidth = (_ring.bottomQuarter()-12) / 6;
+//     extraPixels = (_ring.bottomQuarter()-12) % 6;
 
-uint32_t Patterns::scaleBrightness(uint32_t color, float percentage)
-{
-    if (color == 0 || (percentage < 0.0 && percentage > 1.0))
-        return color;
+//     setPixelColor(_ring.topQuarter()+stripWidth, red(brightness), _ring.bottomQuarter()-stripWidth-12, CW, stripWidth*2, stripWidth);
+//     setPixelColor(_ring.topQuarter()+stripWidth, red(brightness), _ring.bottomQuarter()-stripWidth-12, CCW, stripWidth*2, stripWidth);
 
-    float scale = 1.0 - percentage;
+//     setPixelColor(_ring.halfPixels()-12, red(brightness), 12, CCW);
+//     setPixelColor(_ring.halfPixels()-12, red(brightness), 12, CW);
 
-    uint8_t r = (color >> 16) & 0xFF;
-    uint8_t g = (color >> 8) & 0xFF;
-    uint8_t b = color & 0xFF;
-
-    return rgbColor(r*scale, g*scale, b*scale);
-}
-
-void Patterns::fadeToBlack(uint16_t absolutePos, float percentage) 
-{
-    mLeds.setPixelColor(absolutePos, scaleBrightness(mLeds.getPixelColor(absolutePos), percentage));
-}
+//     show(_menu.currentSpeed());
+// }

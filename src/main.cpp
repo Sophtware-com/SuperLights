@@ -61,7 +61,7 @@ uint8_t nextGroup()
         return (uint8_t)(patternGroupType::STROBE_GROUP);
 
     // We do -2 to skip the cycle groups in normal mode.
-    return (_group < (uint8_t)patternGroupType::COLOR_GROUP) ? _group + 1 : 0;
+    return (_group < (uint8_t)patternGroupType::EMERGENCY_GROUP) ? _group + 1 : 0;
 }
 
 uint8_t nextPattern()
@@ -320,7 +320,7 @@ void loop()
         if (_mode == MODE_1_NORMAL)
             _menu.writeLastGroup();
 
-        _patterns.clear();
+        _patterns.clear(true);
     }
 
     if (_menu.patternChanged())
@@ -337,7 +337,7 @@ void loop()
         if (_mode == MODE_1_NORMAL)
             _menu.writeLastPattern();
 
-        _patterns.clear();
+        _patterns.clear(true);
     }
 
     _patterns.displayPattern();

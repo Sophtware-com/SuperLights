@@ -10,7 +10,7 @@
 #define LED_RING_PIN 7
 #define LED_STAR_PIN 4
 
-#define TIME_UNIT 120
+//#define TIME_UNIT 120
 
 enum patternGroupType
 {
@@ -47,10 +47,14 @@ class Patterns
     Adafruit_NeoPixel mLeds;
 
     bool mTwinkle = false;
+    
+    // This is set from the main loop when a pattern changes. This gives
+    // the pattern a chance to run one-time initialization.
+    bool mInit = true;
 
-    uint8_t mMorseColor = 0;
-    uint8_t mMorseBrightness = 0;
-    uint8_t mMorsePattern = 0;
+    // uint8_t mMorseColor = 0;
+    // uint8_t mMorseBrightness = 0;
+    // uint8_t mMorsePattern = 0;
 
     uint8_t mPoints;
     cometPoint comet2[16];
@@ -96,7 +100,7 @@ public:
 
 
     // NeoPixel shortcuts
-    void clear() { mLeds.clear(); }
+    void clear(bool init=false) { mLeds.clear(); mInit = init; }
     void show(unsigned long wait) { mLeds.show(); delay(wait); }
     uint32_t rgbColor(uint8_t r, uint8_t g, uint8_t b) { return mLeds.Color(r,g,b); };
     void setBrightness(uint8_t brightness) { mLeds.setBrightness(brightness); }
@@ -167,18 +171,6 @@ public:
     uint8_t initializeTopCenter(uint8_t value, uint8_t halfPixels);
     uint8_t initializeTopQuarter(uint8_t value);
 
-    void cycleGroup();
-    void cycleAllGroup();
-
-    // UTILITY_GROUP
-    void utilityGroup();
-    void utilityGroup(uint8_t pattern);
-    void allLedsOff();
-    void potLevels(uint8_t pattern);
-    void ledTest();
-    void ledTest(uint8_t wait);
-    void displayMode(uint8_t mode, unsigned long wait);
-
     // STROBE_GROUP
     void strobeGroup();
     void strobeGroup(uint8_t pattern);
@@ -190,41 +182,56 @@ public:
     void flagGroup();
     void flagGroup(uint8_t pattern);
     void americanFlag();
-    void americanFlagFlatTop();
+    void spainFlag();
     void mexicanFlag();
     void frenchFlag();
     void canadianFlag();
-    void rebelFlag();
-    void spainFlag();
     void portugalFlag();
+    void rebelFlag();
 
     // RAINBOW_GROUP
     void rainbowGroup();
     void rainbowGroup(uint8_t pattern);
+    void rainbowFadeWave();
     void rainbowFade();
-    void rainbowFadeChase();
-    void rainbowChase();
-    void rainbowChaseFade();
-    void rainbowNightRider();
-    void rainbowQuadRider();
-    void rainbowFireplace();
-    void rainbowBouncingBalls();
+    void rainbowTheaterWave();
+    void rainbowTheater();
 
     // COLOR_GROUP
     void colorGroup();
     void colorGroup(uint8_t pattern);
-    void solidWhite();
-    void solidColor();
-    void flickerColor();
+    void onFire();
+    void comet();
     void randomPixels();
     void randomPixelsColor();
-    void nightRider();
-    void nightRider(uint8_t color);
-    void quadRider();
-    void quadRider(uint8_t color);
+    void flickerColor();
     void starBurst();
-    void sparkle();
-    void fullSparkle();
+    void solidColor();
+    void solidWhite();
+
+    // BOUNCE_GROUP
+    void bounceGroup();
+    void bounceGroup(uint8_t pattern);
+    void rainbowNightRider();
+    void rainbowQuadRider();
+    void colorNightRider();
+    void colorQuadRider();
+    void bouncingBalls();
+    void nightRider(uint8_t color);
+    void quadRider(uint8_t color);
+
+    // HOLIDAY_GROUP
+    void holidayGroup();
+    void holidayGroup(uint8_t pattern);
+    void holidaySparkle();
+    void christmasLights();
+    void halloweenLights();
+    void easterLights();
+    void valentineLights();
+    void independenceLights();
+    void saintPatrickLights();
+    void thanksGivingLights();
+    void holidayLights(uint32_t colors[], uint16_t count);
 
     // EMERGENCY_GROUP
     void emergencyGroup();
@@ -236,21 +243,19 @@ public:
     void chasingPoliceLights();
     void chaseLights(uint32_t colors[], uint16_t count);
 
-    // HOLIDAY_GROUP
-    void holidayGroup();
-    void holidayGroup(uint8_t pattern);
-    void holidayLights(uint32_t colors[], uint16_t count);
-    void christmasLights();
-    void halloweenLights();
-    void easterLights();
-    void valentineLights();
-    void independenceLights();
-    void saintPatrickLights();
-    void thanksGivingLights();
+    // CYCLE_GROUP
+    void cycleGroup();
 
+    // CYCLE_ALL_GROUP
+    void cycleAllGroup();
 
     void colorWipe(uint8_t wait, uint8_t brightness, uint8_t color);
     void theaterChase(uint8_t wait, uint8_t brightness, uint8_t color);
+
+    void ledTest();
+    void ledTest(uint8_t wait);
+    void displayMode(uint8_t mode, unsigned long wait);
+
 
     // Morse code functions.
     // void dot();
@@ -258,6 +263,12 @@ public:
     // void displayMorse(uint8_t pattern, const char* msg);
     // void morseCodeGroup();
     // void morseCodeGroup(uint8_t pattern);
+
+    // UTILITY_GROUP
+    // void utilityGroup();
+    // void utilityGroup(uint8_t pattern);
+    // void allLedsOff();
+    // void potLevels(uint8_t pattern);
 
     // Display ring from a bitmap.
     // uint16_t displayArray(uint16_t startPos, uint16_t size, uint8_t* array);
