@@ -1316,10 +1316,11 @@ void Patterns::cycleGroup()
         switch (groupIndex) {
             default:
             case 0: group = patternGroupType::FLAG_GROUP; break;
-            case 1: group = patternGroupType::HOLIDAY_GROUP; break;
-            case 2: group = patternGroupType::EMERGENCY_GROUP; break;
-            case 3: group = patternGroupType::RAINBOW_GROUP; break;
-            case 4: group = patternGroupType::COLOR_GROUP; break;
+            case 1: group = patternGroupType::RAINBOW_GROUP; break;
+            case 2: group = patternGroupType::COLOR_GROUP; break;
+            case 3: group = patternGroupType::BOUNCE_GROUP; break;
+            case 4: group = patternGroupType::HOLIDAY_GROUP; break;
+            case 5: group = patternGroupType::EMERGENCY_GROUP; break;
         }
 
         pattern = _menu.defaultPattern(group);
@@ -1330,14 +1331,16 @@ void Patterns::cycleGroup()
     switch (group) {
         case FLAG_GROUP:
             flagGroup(pattern); break;
-        case HOLIDAY_GROUP:
-            holidayGroup(pattern); break;
-        case EMERGENCY_GROUP:
-            emergencyGroup(pattern); break;
         case RAINBOW_GROUP:
             rainbowGroup(pattern); break;
         case COLOR_GROUP:
             colorGroup(pattern); break;
+        case BOUNCE_GROUP:
+            rainbowGroup(pattern); break;
+        case HOLIDAY_GROUP:
+            holidayGroup(pattern); break;
+        case EMERGENCY_GROUP:
+            emergencyGroup(pattern); break;
         default:
             flagGroup(0); break; // American flag...
     }
@@ -1358,7 +1361,7 @@ void Patterns::cycleAllGroup()
         pattern = (pattern == _patterns.groupPatternCount((patternGroupType)group)-1) ? 0 : pattern + 1;
 
         if (pattern == 0)
-            group = (group < (uint8_t)patternGroupType::COLOR_GROUP) ? group + 1 : 0;
+            group = (group < (uint8_t)patternGroupType::EMERGENCY_GROUP) ? group + 1 : 0;
 
         _menu.restorePattern(group, pattern);
 
@@ -1368,14 +1371,16 @@ void Patterns::cycleAllGroup()
     switch (group) {
         case FLAG_GROUP:
             flagGroup(pattern); break;
-        case HOLIDAY_GROUP:
-            holidayGroup(pattern); break;
-        case EMERGENCY_GROUP:
-            emergencyGroup(pattern); break;
         case RAINBOW_GROUP:
             rainbowGroup(pattern); break;
         case COLOR_GROUP:
             colorGroup(pattern); break;
+        case BOUNCE_GROUP:
+            rainbowGroup(pattern); break;
+        case HOLIDAY_GROUP:
+            holidayGroup(pattern); break;
+        case EMERGENCY_GROUP:
+            emergencyGroup(pattern); break;
         default:
             flagGroup(0); break; // American flag on Angel frame.
     }
@@ -1405,6 +1410,17 @@ void Patterns::ledTest(uint8_t wait)
 // DISPLAY THE BOOT MODE ON THE RING
 void Patterns::displayMode(uint8_t mode, unsigned long wait)
 {
+    // Flash the mode to get attention.
+    setPixelColor(0, red(), 4*mode, DirectionType::CW, 4, 2);
+    show(50);
+    clear();
+    show(50);
+    setPixelColor(0, red(), 4*mode, DirectionType::CW, 4, 2);
+    show(50);
+    clear();
+    show(50);
+
+    // Now just display the mode solid.
     setPixelColor(0, red(), 4*mode, DirectionType::CW, 4, 2);
     show(wait);
     clear();
