@@ -28,7 +28,7 @@ const uint8_t Patterns::groupPatternCount(patternGroupType group)
         case RAINBOW_GROUP:
             return 4;
         case COLOR_GROUP:
-            return 8;
+            return 7;
         case BOUNCE_GROUP:
              return 5;
         case HOLIDAY_GROUP:
@@ -114,10 +114,10 @@ const char* Patterns::patternName(uint8_t group, uint8_t pattern)
             "comet",
             "fireFlies",
             "randomPixels",
-            "randomPixelColor",
             "flickerColor",
             "starBurst",
             "solidColor",
+            "7",
             "8",
             "9"
         },
@@ -653,16 +653,13 @@ void Patterns::colorGroup(uint8_t pattern)
         case 3: 
             randomPixels(); 
             break;
-        case 4: 
-            randomPixelsColor(); 
-            break;
-        case 5:
+        case 4:
             flickerColor(); 
             break;
-        case 6:
+        case 5:
             solidColor(); 
             break;
-        case 7:
+        case 6:
             starBurst(); 
             break;
     }
@@ -743,7 +740,10 @@ void Patterns::comet()
     for (int tail=10; tail>=1; tail--)
     {
         lastPixel = loop(pos, tail, _ring.numPixels());
-        setPixelColor(lastPixel, toColor(color, 255));
+        if (color > 252)
+            setPixelColor(lastPixel, white(255));
+        else
+            setPixelColor(lastPixel, toColor(color, 255));
     }
 
     show(_menu.currentSpeed());
@@ -796,28 +796,28 @@ void Patterns::randomPixels()
     uint8_t bright = _menu.currentBrightness();
 
     for (uint16_t i=0; i<_ring.numPixels(); i++)
-        setPixelColor(i, (uint32_t)(random(0, 100) > 50 ? toColor(color, bright) : 0));
-
-    show(_menu.currentSpeed());
-}
-
-void Patterns::randomPixelsColor()
-{
-    uint8_t color = _menu.currentColor();
-    uint8_t bright = _menu.currentBrightness();
-
-    for (uint16_t i=0; i<_ring.numPixels(); i++)
-        setPixelColor(i, (uint32_t)(random(0, 100) > 50 ? toColor(color, bright) : toColor(255 - color, bright)));
+    {
+        if (color > 252)
+            setPixelColor(i, (uint32_t)(random(0, 100) > 50 ? white(bright) : 0));
+        else
+            setPixelColor(i, (uint32_t)(random(0, 100) > 50 ? toColor(color, bright) : 0));
+    }
 
     show(_menu.currentSpeed());
 }
 
 void Patterns::flickerColor()
 {
+    uint8_t color = _menu.currentColor();
     uint8_t brightness = random(0, 255);
+
     if (random(0, brightness) < 10)
     {
-        setRingColor(toColor(_menu.currentColor(), brightness));
+        if (color > 252)
+            setRingColor(white(brightness));
+        else
+            setRingColor(toColor(color, brightness));
+
         show(random(10, 100));
     }
 }
@@ -834,7 +834,10 @@ void Patterns::starBurst()
     for (int tail=16; tail>=1; tail--)
     {
         lastPixel = loop(pos, tail, _ring.numPixels());
-        setPixelColor(lastPixel, toColor(color, (tail*tail)-1));
+        if (color > 252)
+            setPixelColor(lastPixel, white((tail*tail)-1));
+        else
+            setPixelColor(lastPixel, toColor(color, (tail*tail)-1));
     }
 
     show(_menu.currentSpeed());
@@ -908,19 +911,30 @@ void Patterns::rainbowQuadRider()
 
 void Patterns::colorNightRider()
 {
-    nightRider(_menu.currentColor());
+    uint8_t color = _menu.currentColor();
+
+    if (color > 252)
+        nightRider(white(), false);
+    else
+        nightRider(_menu.currentColor());
 }
 
 void Patterns::colorQuadRider()
 {
-    quadRider(_menu.currentColor());
+    uint8_t color = _menu.currentColor();
+
+    if (color > 252)
+        quadRider(white(), false);
+    else
+        quadRider(_menu.currentColor());
 }
 
-void Patterns::nightRider(uint8_t color)
+void Patterns::nightRider(uint8_t color, bool hasBackground)
 {
     static uint16_t lastPixel = _ring.halfPixels() - 1;
 
-    setRingColor(toColor(255 - color, 9));
+    if (hasBackground)
+        setRingColor(toColor(255 - color, 9));
 
     for (int i=0; i<mPoints; i++)
     {
@@ -934,11 +948,12 @@ void Patterns::nightRider(uint8_t color)
     show(_menu.currentSpeed());
 }
 
-void Patterns::quadRider(uint8_t color)
+void Patterns::quadRider(uint8_t color, bool hasBackground)
 {
     static uint16_t lastPixel = _ring.quarterPixels() - 1;
 
-    setRingColor(toColor(255 - color, 9));
+    if (hasBackground)
+        setRingColor(toColor(255 - color, 9));
 
     for (int i=0; i<mPoints; i++)
     {
@@ -1378,14 +1393,14 @@ void Patterns::cycleGroup()
 
     if (millis() > timer)
     {
-        if (!mInit)
+        if (timer > 0)
             group = inc(group, patternGroupType::FLAG_GROUP, patternGroupType::EMERGENCY_GROUP);
 
         pattern = _menu.defaultPattern(group);
 
         timer = millis() + 8000; // 8 seconds
-
-        mInit = false;
+ 
+        mInit = true;
     }
 
     displayPattern(group, pattern);
@@ -1403,7 +1418,7 @@ void Patterns::cycleAllGroup()
 
     if (millis() > timer)
     {
-        if (!mInit)
+        if (timer > 0)
         {
             pattern = inc(pattern, _patterns.groupPatternCount((patternGroupType)group)-1);
 
@@ -1415,7 +1430,7 @@ void Patterns::cycleAllGroup()
 
         timer = millis() + 8000; // 8 seconds
 
-        mInit = false;
+        mInit = true;
     }
 
     displayPattern(group, pattern);

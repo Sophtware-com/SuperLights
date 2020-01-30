@@ -204,7 +204,6 @@ public:
     void comet();
     void fireFlies();
     void randomPixels();
-    void randomPixelsColor();
     void flickerColor();
     void starBurst();
     void solidColor();
@@ -217,8 +216,8 @@ public:
     void colorNightRider();
     void colorQuadRider();
     void bouncingBalls();
-    void nightRider(uint8_t color);
-    void quadRider(uint8_t color);
+    void nightRider(uint8_t color, bool hasBackground=true);
+    void quadRider(uint8_t color, bool hasBackground=true);
 
     // HOLIDAY_GROUP
     void holidayGroup();
