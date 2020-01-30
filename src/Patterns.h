@@ -97,6 +97,7 @@ public:
 
     void displayPattern();
     void displayPattern(uint8_t group);
+    void displayPattern(uint8_t group, uint8_t pattern);
 
 
     // NeoPixel shortcuts
@@ -146,8 +147,10 @@ public:
     uint32_t purple(uint8_t brightness=255) { return toColor(223, brightness); }
 
     // Helpers
-    uint16_t inc(uint16_t n, uint16_t max) { return (n+1) == max ? 0 : n+1; }
-    uint16_t dec(uint16_t n, uint16_t max) { return (n-1) == 0 ? max : n-1; }
+    uint16_t inc(uint16_t n, uint16_t max) { return n == max ? 0 : n+1; }
+    uint16_t inc(uint16_t n, uint16_t min, uint16_t max) { return n == max ? min : n+1; }
+    uint16_t dec(uint16_t n, uint16_t max) { return n == 0 ? max : n-1; }
+    uint16_t dec(uint16_t n, uint16_t min, uint16_t max) { return n == min ? max : n-1; }
     uint16_t loop(uint16_t a, uint16_t b, uint16_t max) { return (a + b) % max; }
     void bounce(uint16_t *pos, bool *direction, uint16_t lastPixel);
 
@@ -161,9 +164,6 @@ public:
     {
       return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
     }
-
-
-    void showPattern(uint8_t pattern);
 
 
     // INITIALIZATION ROUTINES
@@ -202,12 +202,12 @@ public:
     void colorGroup(uint8_t pattern);
     void onFire();
     void comet();
+    void fireFlies();
     void randomPixels();
     void randomPixelsColor();
     void flickerColor();
     void starBurst();
     void solidColor();
-    void solidWhite();
 
     // BOUNCE_GROUP
     void bounceGroup();
@@ -258,6 +258,7 @@ public:
 
 
     // Morse code functions.
+    // void showPattern(uint8_t pattern);
     // void dot();
     // void dash();
     // void displayMorse(uint8_t pattern, const char* msg);

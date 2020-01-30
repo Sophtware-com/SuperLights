@@ -99,8 +99,8 @@ const char* Patterns::patternName(uint8_t group, uint8_t pattern)
         },
         { // RAINBOW_GROUP
             "rainbowFadeWave",
-            "rainbowFade",
             "rainbowTheaterWave",
+            "rainbowFade",
             "rainbowTheater",
             "4",
             "5",
@@ -112,12 +112,12 @@ const char* Patterns::patternName(uint8_t group, uint8_t pattern)
         { // COLOR_GROUP
             "onFire",
             "comet",
+            "fireFlies",
             "randomPixels",
             "randomPixelColor",
             "flickerColor",
             "starBurst",
             "solidColor",
-            "solidWhite",
             "8",
             "9"
         },
@@ -222,6 +222,40 @@ void Patterns::displayPattern(uint8_t group)
             break;
         case EMERGENCY_GROUP:
             emergencyGroup();
+            break;
+        case CYCLE_GROUP:
+            cycleGroup();
+            break;
+        case CYCLE_ALL_GROUP:
+            cycleAllGroup();
+            break;
+    }
+}
+
+void Patterns::displayPattern(uint8_t group, uint8_t pattern)
+{
+    switch ((patternGroupType)group) {
+        default:
+        case STROBE_GROUP:
+            strobeGroup(pattern);
+            break;
+        case FLAG_GROUP:
+            flagGroup(pattern);
+            break;
+        case RAINBOW_GROUP:
+            rainbowGroup(pattern);
+            break;
+        case COLOR_GROUP:
+            colorGroup(pattern);
+            break;
+        case BOUNCE_GROUP:
+            bounceGroup(pattern);
+            break;
+        case HOLIDAY_GROUP:
+            holidayGroup(pattern);
+            break;
+        case EMERGENCY_GROUP:
+            emergencyGroup(pattern);
             break;
         case CYCLE_GROUP:
             cycleGroup();
@@ -515,10 +549,10 @@ void Patterns::rainbowGroup(uint8_t pattern)
             rainbowFadeWave();
             break;
         case 1:
-            rainbowFade();
+            rainbowTheaterWave();
             break;
         case 2:
-            rainbowTheaterWave();
+            rainbowFade();
             break;
         case 3:
             rainbowTheater();
@@ -614,22 +648,22 @@ void Patterns::colorGroup(uint8_t pattern)
             comet(); 
             break;
         case 2: 
-            randomPixels(); 
+            fireFlies(); 
             break;
         case 3: 
+            randomPixels(); 
+            break;
+        case 4: 
             randomPixelsColor(); 
             break;
-        case 4:
+        case 5:
             flickerColor(); 
             break;
-        case 5:
+        case 6:
             solidColor(); 
             break;
-        case 6:
-            starBurst(); 
-            break;
         case 7:
-            solidWhite(); 
+            starBurst(); 
             break;
     }
 }
@@ -717,6 +751,45 @@ void Patterns::comet()
     pos = inc(pos, _ring.numPixels());
 }
 
+void Patterns::fireFlies()
+{
+    static uint16_t fly[16];
+    static uint8_t brightness[16];
+
+    uint8_t color = _menu.currentColor();
+
+    if (mInit)
+    {
+        for (int i=0; i<16; i++)
+        {
+            fly[i] = random(_ring.numPixels());
+            brightness[i] = random(1,17);
+        }
+
+        mInit = false;
+    }
+
+    for (int j=0; j<16; j++)
+    {
+        brightness[j] = dec(brightness[j], 16);
+
+        if (brightness[j] == 0)
+        {
+            setPixelColor(fly[j], black());
+
+            fly[j] = random(_ring.numPixels());
+            brightness[j] = 16;
+        }
+
+        if (color > 252)
+            setPixelColor(fly[j], white((brightness[j]*brightness[j])-1));
+        else
+            setPixelColor(fly[j], toColor(color, (brightness[j]*brightness[j])-1));
+    }
+
+    show(_menu.currentSpeed());
+}
+
 void Patterns::randomPixels()
 {
     uint8_t color = _menu.currentColor();
@@ -773,22 +846,17 @@ void Patterns::starBurst()
 
 void Patterns::solidColor()
 {
-  if (twinkle() || _menu.currentSpeed() < 5)
-      setRingColor(toColor(_menu.currentColor(), _menu.currentBrightness()));
-  else
-      clear();
+    if (twinkle() || _menu.currentSpeed() < 5)
+    {
+        if (_menu.currentColor() > 252)
+            setRingColor(white(_menu.currentBrightness()));
+        else
+            setRingColor(toColor(_menu.currentColor(), _menu.currentBrightness()));
+    }
+    else
+        clear();
 
-  show(_menu.currentSpeed());
-}
-
-void Patterns::solidWhite()
-{
-  if (twinkle() || _menu.currentSpeed() < 5)
-      setRingColor(white(_menu.currentBrightness()));
-  else
-      clear();
-
-  show(_menu.currentSpeed());
+    show(_menu.currentSpeed());
 }
 
 
@@ -1304,46 +1372,23 @@ void Patterns::chaseLights(uint32_t colors[], uint16_t count)
 //
 void Patterns::cycleGroup()
 {
-    static uint8_t groupIndex = 255;
-    static patternGroupType group;
-    static uint8_t pattern = 255;
+    static uint8_t group = patternGroupType::FLAG_GROUP;
+    static uint8_t pattern = 0;
     static unsigned long timer = 0;
 
-    if (groupIndex == 255 || (_pattern == 0 && millis() > timer))
+    if (millis() > timer)
     {
-        groupIndex = (groupIndex < 5) ? groupIndex + 1 : 0;
-
-        switch (groupIndex) {
-            default:
-            case 0: group = patternGroupType::FLAG_GROUP; break;
-            case 1: group = patternGroupType::RAINBOW_GROUP; break;
-            case 2: group = patternGroupType::COLOR_GROUP; break;
-            case 3: group = patternGroupType::BOUNCE_GROUP; break;
-            case 4: group = patternGroupType::HOLIDAY_GROUP; break;
-            case 5: group = patternGroupType::EMERGENCY_GROUP; break;
-        }
+        if (!mInit)
+            group = inc(group, patternGroupType::FLAG_GROUP, patternGroupType::EMERGENCY_GROUP);
 
         pattern = _menu.defaultPattern(group);
 
         timer = millis() + 8000; // 8 seconds
+
+        mInit = false;
     }
 
-    switch (group) {
-        case FLAG_GROUP:
-            flagGroup(pattern); break;
-        case RAINBOW_GROUP:
-            rainbowGroup(pattern); break;
-        case COLOR_GROUP:
-            colorGroup(pattern); break;
-        case BOUNCE_GROUP:
-            rainbowGroup(pattern); break;
-        case HOLIDAY_GROUP:
-            holidayGroup(pattern); break;
-        case EMERGENCY_GROUP:
-            emergencyGroup(pattern); break;
-        default:
-            flagGroup(0); break; // American flag...
-    }
+    displayPattern(group, pattern);
 }
 
 
@@ -1352,38 +1397,28 @@ void Patterns::cycleGroup()
 //
 void Patterns::cycleAllGroup()
 {
-    static uint8_t group = 1;
-    static uint8_t pattern = 255;
+    static uint8_t group = patternGroupType::FLAG_GROUP;
+    static uint8_t pattern = 0;
     static unsigned long timer = 0;
 
-    if (pattern == 255 || (_pattern == 0 && millis() > timer))
+    if (millis() > timer)
     {
-        pattern = (pattern == _patterns.groupPatternCount((patternGroupType)group)-1) ? 0 : pattern + 1;
+        if (!mInit)
+        {
+            pattern = inc(pattern, _patterns.groupPatternCount((patternGroupType)group)-1);
 
-        if (pattern == 0)
-            group = (group < (uint8_t)patternGroupType::EMERGENCY_GROUP) ? group + 1 : 0;
+            if (pattern == 0)
+                group = inc(group, patternGroupType::FLAG_GROUP, patternGroupType::EMERGENCY_GROUP);
+        }
 
         _menu.restorePattern(group, pattern);
 
         timer = millis() + 8000; // 8 seconds
+
+        mInit = false;
     }
 
-    switch (group) {
-        case FLAG_GROUP:
-            flagGroup(pattern); break;
-        case RAINBOW_GROUP:
-            rainbowGroup(pattern); break;
-        case COLOR_GROUP:
-            colorGroup(pattern); break;
-        case BOUNCE_GROUP:
-            rainbowGroup(pattern); break;
-        case HOLIDAY_GROUP:
-            holidayGroup(pattern); break;
-        case EMERGENCY_GROUP:
-            emergencyGroup(pattern); break;
-        default:
-            flagGroup(0); break; // American flag on Angel frame.
-    }
+    displayPattern(group, pattern);
 }
 
 

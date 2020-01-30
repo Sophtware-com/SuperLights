@@ -285,6 +285,8 @@ void setup()
     _groupButtonPushedTime = 0;
     _patternButtonPushedTime = 0;
 
+    _patterns.clear(true);
+
     _buzzer.beep();
 }
 
