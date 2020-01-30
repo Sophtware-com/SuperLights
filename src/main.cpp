@@ -8,7 +8,7 @@
 #include "Buzzer.h"
 #include "Menu.h"
 
-const char* VERSION_NO = "Rev 4.0.01";
+const char* VERSION_NO = "Rev 4.0.02";
 
 // PIN ASSIGNMENTS
 #define PWR_LED_PIN   8
