@@ -31,22 +31,78 @@
 
 class Ring
 {
+private:
+
+    uint16_t mNumPixels;
+    uint16_t mLastPixel;
+    uint16_t mHalfPixels;
+    uint16_t mQuarterPixels;
+
 public:
+    void begin()
+    {
+        mNumPixels = _ringConfig.numPixels();
+        mLastPixel = _ringConfig.numPixels() - 1;
+        mHalfPixels = _ringConfig.numPixels() / 2;
+        mQuarterPixels = _ringConfig.numPixels() / 4;
+    }
 
     // Computes the number of pixels on the cage ring.
-    uint16_t numPixels();
-    uint16_t topCenter();
-    uint16_t topQuarter();
-    DirectionType ringDirection();
+    inline uint16_t numPixels()
+    {
+        return mNumPixels;
+    };
+
+    inline uint16_t topCenter()
+    {
+        return _ringConfig.topCenter();
+    }
+
+    inline uint16_t topQuarter()
+    {
+        return _ringConfig.topQuarter();
+    }
+
+    inline DirectionType ringDirection()
+    {
+        return _ringConfig.direction();
+    }
 
     // Returns the LAST pixel of the cage ring.
-    uint16_t lastPixel();
-    uint16_t bottomQuarter();
-    uint16_t bottomOffset();
-    uint16_t halfPixels();
-    uint16_t quarterPixels();
-    uint16_t incPixel(uint16_t pos);
-    uint16_t decPixel(uint16_t pos);
+    inline uint16_t lastPixel()
+    {
+        return mLastPixel;
+    };
+
+    inline uint16_t bottomQuarter()
+    {
+        return halfPixels() - topQuarter();
+    }
+
+    inline uint16_t bottomOffset()
+    {
+        return topQuarter() - bottomQuarter();
+    }
+
+    inline uint16_t halfPixels()
+    {
+        return mHalfPixels;
+    }
+
+    inline uint16_t quarterPixels()
+    {
+        return mQuarterPixels;
+    }
+
+    inline uint16_t incPixel(uint16_t pos)
+    {
+        return (pos == mLastPixel) ? 0 : pos + 1;
+    }
+
+    inline uint16_t decPixel(uint16_t pos)
+    {
+        return (pos == 0) ? mLastPixel : pos - 1;
+    }
 
     // This maps the ring pixels with Top Dead Center (pixel 0) at the
     // top of the cage ring. Since pixel zero starts where the LED strips

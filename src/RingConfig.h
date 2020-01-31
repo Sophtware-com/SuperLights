@@ -38,10 +38,10 @@ public:
     void init();
     void save();
 
-    uint16_t numPixels() { return mNumPixels; }
-    uint8_t topCenter() { return mTopCenter; }
-    uint8_t topQuarter() { return mTopQuarter; }
-    DirectionType direction() { return mDirection; }
+    inline uint16_t numPixels() { return mNumPixels; }
+    inline uint8_t topCenter() { return mTopCenter; }
+    inline uint8_t topQuarter() { return mTopQuarter; }
+    inline DirectionType direction() { return mDirection; }
 };
 
 extern RingConfig _ringConfig;

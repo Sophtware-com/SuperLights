@@ -5,10 +5,15 @@
 #include <Adafruit_NeoPixel.h>
 
 #include "SerialDebug.h"
+#include "Menu.h"
 #include "Ring.h"
 
 #define LED_RING_PIN 7
 #define LED_STAR_PIN 4
+
+#define TO_WHITE 253 // toColor/toRainbow/rainbowColor functions will change to white after this color.
+
+#define CYCLE_DELAY_SECONDS 8 // How long each pattern displays in a cycle mode.
 
 //#define TIME_UNIT 120
 
@@ -42,6 +47,57 @@ struct cometPoint
     bool cw;
 };
 
+struct bouncingBall
+{
+    float height;
+    float impactVelocity;
+    float timeSinceLastBounce;
+    int   position;
+    long  clockTimeSinceLastBounce;
+    float dampening;
+};
+
+struct knobPositions
+{
+    uint8_t brightness;
+    uint8_t speed;
+    union
+    {
+        uint8_t color;
+        uint8_t size;
+    };
+};
+
+struct cyclePosition
+{
+    uint8_t group;
+    uint8_t pattern;
+    unsigned long timer;
+};
+
+struct patternFrame
+{
+    uint8_t maxFrames;
+    uint8_t currentFrame;
+
+    uint16_t position;
+    uint16_t offset;
+
+    uint8_t brightness;
+    uint8_t speed;
+    union
+    {
+        uint8_t color;
+        uint8_t size;
+    };
+};
+
+struct fireFly
+{
+    uint8_t position;
+    uint8_t brightness;
+};
+
 class Patterns
 {
     Adafruit_NeoPixel mLeds;
@@ -60,11 +116,26 @@ class Patterns
     cometPoint comet2[16];
     cometPoint comet4[16];
 
+    bouncingBall balls[4];
+
+    knobPositions knobs;
+
+    cyclePosition cycle;
+
+    patternFrame mFrame;
+
+    fireFly flies[16];
+
 public:
     Patterns(uint16_t ledCount, uint8_t pin) : mLeds(ledCount, pin, NEO_GRB + NEO_KHZ800)
     {
         mLeds.begin();
+
         initComet();
+
+        cycle.group = patternGroupType::FLAG_GROUP;
+        cycle.pattern = 0;
+        cycle.timer = 0;
     };
 
     Adafruit_NeoPixel& getLeds() { return mLeds; }
@@ -86,6 +157,28 @@ public:
         }
     }
 
+    inline void initBrightness() 
+    { 
+        knobs.brightness = _menu.currentBrightness(); 
+    }
+
+    inline void initSpeed() 
+    { 
+        knobs.speed = _menu.currentSpeed(); 
+    }
+
+    inline void initColor() 
+    { 
+        knobs.color = _menu.currentColor(); 
+    }
+
+    inline void initSize() 
+    { 
+        knobs.size = _menu.currentColor(); 
+    }
+
+    inline void resetFirstFrame() { mInit = true; }
+    bool isFirstFrame() { bool firstFrame = mInit; if (firstFrame) mInit = !mInit; return firstFrame; }
 
     // HELPERS FOR THE MENU SYSTEM IN LOOP.
     const uint8_t maxGroups();
@@ -101,25 +194,52 @@ public:
 
 
     // NeoPixel shortcuts
-    void clear(bool init=false) { mLeds.clear(); mInit = init; }
-    void show(unsigned long wait) { mLeds.show(); delay(wait); }
-    uint32_t rgbColor(uint8_t r, uint8_t g, uint8_t b) { return mLeds.Color(r,g,b); };
-    void setBrightness(uint8_t brightness) { mLeds.setBrightness(brightness); }
-    void setPixelColorAbs(uint16_t absolutePos, uint32_t color) { mLeds.setPixelColor(absolutePos, color); }
-
+    inline void clear(bool init=false) { mLeds.clear(); mInit = init; }
+    inline void show(unsigned long wait = 0) { mLeds.show(); delay(wait); }
+    inline uint32_t rgbColor(uint8_t r, uint8_t g, uint8_t b) { return mLeds.Color(r,g,b); };
+    inline void setBrightness(uint8_t brightness) { mLeds.setBrightness(brightness); }
+    inline void setPixelColorAbs(uint16_t absolutePos, uint32_t color) { mLeds.setPixelColor(absolutePos, color); }
+    
+    void setPixelColor(DirectionType dir, uint16_t start, uint32_t color, uint16_t length=1);
+    void setPixelColor(DirectionType dir, uint16_t start, uint16_t end, uint32_t color, uint16_t blockSize, uint16_t stripeSize);
     void setPixelColor(uint16_t relativePos, uint32_t color, uint16_t length=1, DirectionType dir=DirectionType::CW, uint16_t skip=1, uint16_t litPixels=1);
     void setRingColor(uint32_t color);
     void flash(uint8_t wait, uint32_t color);
 
     bool twinkle() { mTwinkle = !mTwinkle; return mTwinkle; }
 
-
     // Returns a color from the color wheel based on index from 0..255
     uint32_t colorWheel(byte WheelPos);
     uint32_t colorWheel2(byte WheelPos);
 
     // Takes a color wheel index and brightness and returns the color.
-    uint32_t toColor(uint8_t colorIndex, uint8_t brightness) { return adjustBrightness(colorWheel(colorIndex), brightness); }
+    uint32_t toColor(uint8_t colorIndex, uint8_t brightness, bool useWhite=false) { 
+        return (useWhite && colorIndex > TO_WHITE) ? white(brightness) : adjustBrightness(colorWheel(colorIndex), brightness); }
+    uint32_t toOppositeColor(uint8_t colorIndex, uint8_t brightness, bool useWhite=false) { 
+        return (useWhite && colorIndex > TO_WHITE) ? black() : adjustBrightness(colorWheel(255-colorIndex), brightness); }
+    uint32_t toRainbow(uint8_t colorIndex, uint8_t brightness, bool useWhite=false) {
+        switch (map(colorIndex,0,254,0,8)) {
+            case 0: return red(brightness);
+            case 1: return orange(brightness);
+            case 2: return yellow(brightness);
+            case 3: return green(brightness);
+            case 4: return blue(brightness);
+            case 5: return indigo(brightness);
+            case 6: return (useWhite && colorIndex > TO_WHITE) ? white(brightness) : violet(brightness);
+        }
+    }
+    uint32_t rainbowColor(uint8_t colorIndex, uint8_t brightness, bool useWhite=false) {
+        switch (colorIndex) {
+            default:
+            case 0: return red(brightness);
+            case 1: return orange(brightness);
+            case 2: return yellow(brightness);
+            case 3: return green(brightness);
+            case 4: return blue(brightness);
+            case 5: return indigo(brightness);
+            case 6: return (useWhite && colorIndex > TO_WHITE) ? white(brightness) : violet(brightness);
+        }
+    }
 
     // Takes a color a uniformly adjusts RGB based on brightness scale 0..255
     uint32_t adjustBrightness(uint32_t color, uint8_t brightness);
@@ -131,38 +251,43 @@ public:
     void fadeToBlack(uint16_t absolutePos, float percentage);
 
     // BASIC COLORS
-    uint32_t black() { return 0; }
-    uint32_t white(uint8_t brightness=70) { return adjustBrightness(mLeds.Color(255,255,255), brightness); }
+    inline uint32_t black() { return 0; }
+    inline uint32_t white(uint8_t brightness=70) { return adjustBrightness(mLeds.Color(255,255,255), brightness); }
 
-    // Primary color helpers.
-    uint32_t red(uint8_t brightness=255) { return adjustBrightness(mLeds.Color(255,0,0), brightness); }
-    uint32_t green(uint8_t brightness=255) { return adjustBrightness(mLeds.Color(0,255,0), brightness); }
-    uint32_t blue(uint8_t brightness=255) { return adjustBrightness(mLeds.Color(0,0,255), brightness); }
+    // Color helpers.
+    inline uint32_t red(uint8_t brightness=255) { return adjustBrightness(mLeds.Color(255,0,0), brightness); }
+    inline uint32_t orange(uint8_t brightness=255) { return toColor(11, brightness); }
+    inline uint32_t yellow(uint8_t brightness=255) { return adjustBrightness(mLeds.Color(255,255,0), brightness); }
+    inline uint32_t green(uint8_t brightness=255) { return adjustBrightness(mLeds.Color(0,255,0), brightness); }
+    inline uint32_t blue(uint8_t brightness=255) { return adjustBrightness(mLeds.Color(0,0,255), brightness); }
+    inline uint32_t indigo(uint8_t brightness=255) { return toColor(223, brightness); }
+    inline uint32_t violet(uint8_t brightness=255) { return adjustBrightness(mLeds.Color(255,0,255), brightness); }
 
-    // Secondary color helpers.
-    uint32_t yellow(uint8_t brightness=255) { return adjustBrightness(mLeds.Color(255,255,0), brightness); }
-    uint32_t cyan(uint8_t brightness=255) { return adjustBrightness(mLeds.Color(0,255,255), brightness); }
-    uint32_t magenta(uint8_t brightness=255) { return adjustBrightness(mLeds.Color(255,0,255), brightness); }
-    uint32_t orange(uint8_t brightness=255) { return toColor(11, brightness); }
-    uint32_t purple(uint8_t brightness=255) { return toColor(223, brightness); }
+    // Odd-ball color helpers.
+    inline uint32_t cyan(uint8_t brightness=255) { return adjustBrightness(mLeds.Color(0,255,255), brightness); }
+    inline uint32_t purple(uint8_t brightness=255) { return toColor(223, brightness); }
+    inline uint32_t magenta(uint8_t brightness=255) { return adjustBrightness(mLeds.Color(255,0,255), brightness); }
 
     // Helpers
-    uint16_t inc(uint16_t n, uint16_t max) { return n == max ? 0 : n+1; }
-    uint16_t inc(uint16_t n, uint16_t min, uint16_t max) { return n == max ? min : n+1; }
-    uint16_t dec(uint16_t n, uint16_t max) { return n == 0 ? max : n-1; }
-    uint16_t dec(uint16_t n, uint16_t min, uint16_t max) { return n == min ? max : n-1; }
-    uint16_t loop(uint16_t a, uint16_t b, uint16_t max) { return (a + b) % max; }
+    // MIN is inclusive, while MAX is exclusive.
+    inline uint16_t inc(uint16_t n, uint16_t max) { return n == (max-1) ? 0 : n+1; }
+    inline uint16_t inc(uint16_t n, uint16_t min, uint16_t max) { return n == (max-1) ? min : n+1; }
+    inline uint16_t dec(uint16_t n, uint16_t max) { return n == 0 ? max-1 : n-1; }
+    inline uint16_t dec(uint16_t n, uint16_t min, uint16_t max) { return n == min ? max-1 : n-1; }
+  
+    inline uint16_t loop(uint16_t a, uint16_t b, uint16_t max) { return (a + b) % max; }
     void bounce(uint16_t *pos, bool *direction, uint16_t lastPixel);
 
+    inline uint16_t nextFrame() { mFrame.currentFrame = inc(mFrame.currentFrame, 1, mFrame.maxFrames+1); return mFrame.currentFrame; }
 
-    uint16_t map(uint16_t x, uint16_t in_min, uint16_t in_max, uint16_t out_min, uint16_t out_max)
-    {
-      return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
+    // MIN and MAX are included in the results (inclusive).
+    inline uint16_t map(uint16_t x, uint16_t in_min, uint16_t in_max, uint16_t out_min, uint16_t out_max) {
+        return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
     }
 
-    float mapfloat(float x, float in_min, float in_max, float out_min, float out_max)
-    {
-      return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
+    // MIN and MAX are included in the results (inclusive).
+    inline float mapfloat(float x, float in_min, float in_max, float out_min, float out_max) {
+        return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
     }
 
 
@@ -216,8 +341,8 @@ public:
     void colorNightRider();
     void colorQuadRider();
     void bouncingBalls();
-    void nightRider(uint8_t color, bool hasBackground=true);
-    void quadRider(uint8_t color, bool hasBackground=true);
+    void nightRider(uint8_t color);
+    void quadRider(uint8_t color);
 
     // HOLIDAY_GROUP
     void holidayGroup();
@@ -276,6 +401,6 @@ public:
     // void displayBitmap(uint16_t lines, uint16_t size, uint8_t* bitmap, uint8_t wait);
 };
 
-extern Patterns _patterns;
+extern Patterns *_patterns;
 
 #endif // PATTERNS_H

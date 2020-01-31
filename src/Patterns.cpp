@@ -1,8 +1,7 @@
 #include "Patterns.h"
-#include "Menu.h"
 
 
-Patterns _patterns(MAX_PIXELS, LED_RING_PIN);
+Patterns *_patterns;
 
 
 //
@@ -46,6 +45,8 @@ const uint8_t Patterns::groupPatternCount(patternGroupType group)
 
 const char* Patterns::groupName(uint8_t group)
 {
+#if defined(USE_SERIAL)
+
     static char buffer[20];
     const PROGMEM static char names[][20] =
     {
@@ -63,10 +64,18 @@ const char* Patterns::groupName(uint8_t group)
     strcpy_P(buffer, (char*)&(names[group]));
 
     return buffer;
+
+#else
+
+    return "";
+
+#endif
 }
 
 const char* Patterns::patternName(uint8_t group, uint8_t pattern)
 {
+#if defined(USE_SERIAL)
+
     // This array was causing a stack overflow, so I had to move the data
     // to the program memory space.
 
@@ -187,6 +196,12 @@ const char* Patterns::patternName(uint8_t group, uint8_t pattern)
     strcpy_P(buffer, (char*)&(names[group][pattern]));
 
     return buffer;
+
+#else
+
+    return "";
+
+#endif
 }
 
 
@@ -293,11 +308,15 @@ void Patterns::strobeGroup(uint8_t pattern)
 
 void Patterns::doubleStrobe()
 {
-    static uint8_t seg = 0;
+    if (isFirstFrame())
+    {
+        mFrame.maxFrames = 10;
+        mFrame.currentFrame = 0;
+    }
 
-    seg = (seg < 10) ? seg + 1 : 1;
+    nextFrame();
 
-    if (seg < 3)
+    if (mFrame.currentFrame < 3)
     {
         uint8_t width = max(1,(uint8_t)(((float)_menu.currentColor() * ((float)_ring.numPixels()/254.0)) / 2.0));
 
@@ -315,11 +334,15 @@ void Patterns::doubleStrobe()
 
 void Patterns::tripleStrobe()
 {
-    static uint8_t seg = 0;
+    if (isFirstFrame())
+    {
+        mFrame.maxFrames = 10;
+        mFrame.currentFrame = 0;
+    }
 
-    seg = (seg < 10) ? seg + 1 : 1;
+    nextFrame();
 
-    if (seg < 4)
+    if (mFrame.currentFrame < 4)
     {
         uint8_t width = max(1,(uint8_t)(((float)_menu.currentColor() * ((float)_ring.numPixels()/254.0)) / 2.0));
 
@@ -337,19 +360,24 @@ void Patterns::tripleStrobe()
 
 void Patterns::aircraftStrobe()
 {
-    static uint8_t seg = 0;
+    if (isFirstFrame())
+    {
+        mFrame.maxFrames = 10;
+        mFrame.currentFrame = 0;
+    }
 
-    seg = (seg < 10) ? seg + 1 : 1;
+    nextFrame();
 
-    uint8_t bright = _menu.currentBrightness();
+    initBrightness();
+    initSize();
 
-    setPixelColor(0, red(bright), _ring.halfPixels());
-    setPixelColor(0, green(bright), _ring.halfPixels(), CCW);
+    setPixelColor(0, red(knobs.brightness), _ring.halfPixels());
+    setPixelColor(0, green(knobs.brightness), _ring.halfPixels(), CCW);
 
-    if (seg < 3)
+    if (mFrame.currentFrame < 3)
     {
         uint8_t topOffset = _ring.bottomOffset();
-        uint8_t size = map(_menu.currentColor(),1,254,6,24);
+        uint8_t size = map(knobs.size,1,254,6,24);
     
         setPixelColor(0, white(), size+topOffset);
         setPixelColor(0, white(), size+topOffset, CCW);
@@ -400,136 +428,159 @@ void Patterns::flagGroup(uint8_t pattern)
 
 void Patterns::americanFlag()
 {
-    uint8_t brightness = _menu.currentBrightness(180);
+    initBrightness();
+    initSpeed();
 
-    setRingColor(white(brightness));
+    if (isFirstFrame())
+    {
+        // ALL WHITE STRIPES
+        setRingColor(white(knobs.brightness));
+
+        // STRIPS RIGHT
+        uint8_t stripWidth = _ring.topQuarter() / 7;
+        uint8_t extraPixels = _ring.topQuarter() % 7;
+
+        setPixelColor(0, red(knobs.brightness), extraPixels, CW);
+        setPixelColor(extraPixels, red(knobs.brightness), _ring.topQuarter(), CW, stripWidth*2, stripWidth);
+
+        // Strips Bottom
+        stripWidth = _ring.bottomQuarter() / 6;
+        extraPixels = _ring.bottomQuarter() % 6;
+
+        setPixelColor(_ring.topQuarter()+stripWidth, red(knobs.brightness), _ring.bottomQuarter()-stripWidth, CW, stripWidth*2, stripWidth);
+        setPixelColor(_ring.topQuarter()+stripWidth, red(knobs.brightness), _ring.bottomQuarter()-stripWidth, CCW, stripWidth*2, stripWidth);
+    }
 
     // Blue Panel
-    setPixelColor(0, blue(brightness), _ring.topQuarter(), CCW);
-
-    static uint8_t spacing = _ring.topQuarter() / 6;
+    setPixelColor(0, blue(knobs.brightness), _ring.topQuarter(), CCW);
 
     // Stars
+    uint8_t spacing = _ring.topQuarter() / 6;
+
     if (twinkle())
-        setPixelColor(spacing-1, white(brightness), spacing*4+2, CCW, spacing, 2);
+        setPixelColor(spacing-1, white(knobs.brightness), spacing*4+2, CCW, spacing, 2);
     else
-        setPixelColor(spacing-1+(spacing/2), white(brightness), spacing*3+2, CCW, spacing, 2);
+        setPixelColor(spacing-1+(spacing/2), white(knobs.brightness), spacing*3+2, CCW, spacing, 2);
 
-    // STRIPS RIGHT
-    uint8_t stripWidth = _ring.topQuarter() / 7;
-    uint8_t extraPixels = _ring.topQuarter() % 7;
-
-    setPixelColor(0, red(brightness), extraPixels, CW);
-    setPixelColor(extraPixels, red(brightness), _ring.topQuarter(), CW, stripWidth*2, stripWidth);
-
-    // Strips Bottom
-    stripWidth = _ring.bottomQuarter() / 6;
-    extraPixels = _ring.bottomQuarter() % 6;
-
-    setPixelColor(_ring.topQuarter()+stripWidth, red(brightness), _ring.bottomQuarter()-stripWidth, CW, stripWidth*2, stripWidth);
-    setPixelColor(_ring.topQuarter()+stripWidth, red(brightness), _ring.bottomQuarter()-stripWidth, CCW, stripWidth*2, stripWidth);
-
-    show(_menu.currentSpeed());
+    show(knobs.speed);
 }
 
 void Patterns::spainFlag()
 {
-    uint8_t brightness = _menu.currentBrightness();
+    if (isFirstFrame())
+    {
+        initBrightness();
 
-    uint8_t topOffset = _ring.bottomOffset();
+        uint8_t topOffset = _ring.bottomOffset();
 
-    setPixelColor(0, yellow(brightness), _ring.halfPixels());
-    setPixelColor(0, yellow(brightness), _ring.halfPixels(), CCW);
+        setPixelColor(0, yellow(knobs.brightness), _ring.halfPixels());
+        setPixelColor(0, yellow(knobs.brightness), _ring.halfPixels(), CCW);
 
-    setPixelColor(0, red(brightness), 12+topOffset);
-    setPixelColor(0, red(brightness), 12+topOffset, CCW);
-    setPixelColor(_ring.halfPixels()-12, red(brightness), 12);
-    setPixelColor(_ring.halfPixels()-12, red(brightness), 12, CCW);
+        setPixelColor(0, red(knobs.brightness), 12+topOffset);
+        setPixelColor(0, red(knobs.brightness), 12+topOffset, CCW);
+        setPixelColor(_ring.halfPixels()-12, red(knobs.brightness), 12);
+        setPixelColor(_ring.halfPixels()-12, red(knobs.brightness), 12, CCW);
 
-    show(_menu.currentSpeed());
+        show(200);
+    }
 }
 
 void Patterns::mexicanFlag()
 {
-    uint8_t brightness = _menu.currentBrightness();
+    if (isFirstFrame())
+    {
+        initBrightness();
 
-    uint8_t topOffset = _ring.bottomOffset();
+        uint8_t topOffset = _ring.bottomOffset();
 
-    setPixelColor(0, red(brightness), _ring.halfPixels());
-    setPixelColor(0, green(brightness), _ring.halfPixels(), CCW);
+        setPixelColor(0, red(knobs.brightness), _ring.halfPixels());
+        setPixelColor(0, green(knobs.brightness), _ring.halfPixels(), CCW);
 
-    setPixelColor(0, white(brightness), 12+topOffset);
-    setPixelColor(0, white(brightness), 12+topOffset, CCW);
-    setPixelColor(_ring.halfPixels()-12, white(brightness), 12);
-    setPixelColor(_ring.halfPixels()-12, white(brightness), 12, CCW);
+        setPixelColor(0, white(knobs.brightness), 12+topOffset);
+        setPixelColor(0, white(knobs.brightness), 12+topOffset, CCW);
+        setPixelColor(_ring.halfPixels()-12, white(knobs.brightness), 12);
+        setPixelColor(_ring.halfPixels()-12, white(knobs.brightness), 12, CCW);
 
-    show(_menu.currentSpeed());
+        show(200);
+    }
 }
 
 void Patterns::frenchFlag()
 {
-    uint8_t brightness = _menu.currentBrightness();
+    if (isFirstFrame())
+    {
+        initBrightness();
 
-    uint8_t topOffset = _ring.bottomOffset();
+        uint8_t topOffset = _ring.bottomOffset();
 
-    setPixelColor(0, red(brightness), _ring.halfPixels());
-    setPixelColor(0, blue(brightness), _ring.halfPixels(), CCW);
+        setPixelColor(0, red(knobs.brightness), _ring.halfPixels());
+        setPixelColor(0, blue(knobs.brightness), _ring.halfPixels(), CCW);
 
-    setPixelColor(0, white(brightness), 12+topOffset);
-    setPixelColor(0, white(brightness), 12+topOffset, CCW);
-    setPixelColor(_ring.halfPixels()-12, white(brightness), 12);
-    setPixelColor(_ring.halfPixels()-12, white(brightness), 12, CCW);
+        setPixelColor(0, white(knobs.brightness), 12+topOffset);
+        setPixelColor(0, white(knobs.brightness), 12+topOffset, CCW);
+        setPixelColor(_ring.halfPixels()-12, white(knobs.brightness), 12);
+        setPixelColor(_ring.halfPixels()-12, white(knobs.brightness), 12, CCW);
 
-    show(_menu.currentSpeed());
+        show(200);
+    }
 }
 
 void Patterns::canadianFlag()
 {
-    uint8_t brightness = _menu.currentBrightness();
+    if (isFirstFrame())
+    {
+        initBrightness();
 
-    uint8_t topOffset = _ring.bottomOffset();
+        uint8_t topOffset = _ring.bottomOffset();
 
-    setPixelColor(0, red(brightness), _ring.halfPixels());
-    setPixelColor(0, red(brightness), _ring.halfPixels(), CCW);
+        setPixelColor(0, red(knobs.brightness), _ring.halfPixels());
+        setPixelColor(0, red(knobs.brightness), _ring.halfPixels(), CCW);
 
-    setPixelColor(0, white(brightness), 12+topOffset);
-    setPixelColor(0, white(brightness), 12+topOffset, CCW);
-    setPixelColor(_ring.halfPixels()-12, white(brightness), 12);
-    setPixelColor(_ring.halfPixels()-12, white(brightness), 12, CCW);
+        setPixelColor(0, white(knobs.brightness), 12+topOffset);
+        setPixelColor(0, white(knobs.brightness), 12+topOffset, CCW);
+        setPixelColor(_ring.halfPixels()-12, white(knobs.brightness), 12);
+        setPixelColor(_ring.halfPixels()-12, white(knobs.brightness), 12, CCW);
 
-    show(_menu.currentSpeed());
+        show(200);
+    }
 }
 
 void Patterns::portugalFlag()
 {
-    uint8_t brightness = _menu.currentBrightness();
+    if (isFirstFrame())
+    {
+        initBrightness();
+        
+        uint8_t topOffset = _ring.bottomOffset();
 
-    uint8_t topOffset = _ring.bottomOffset();
+        setPixelColor(0, red(knobs.brightness), _ring.halfPixels());
+        setPixelColor(0, green(knobs.brightness), _ring.halfPixels(), CCW);
 
-    setPixelColor(0, red(brightness), _ring.halfPixels());
-    setPixelColor(0, green(brightness), _ring.halfPixels(), CCW);
+        setPixelColor(0, red(knobs.brightness), 12+topOffset, CCW);
+        setPixelColor(_ring.halfPixels()-12, red(knobs.brightness), 12, CCW);
 
-    setPixelColor(0, red(brightness), 12+topOffset, CCW);
-    setPixelColor(_ring.halfPixels()-12, red(brightness), 12, CCW);
-
-    show(_menu.currentSpeed());
+        show(200);
+    }
 }
 
 void Patterns::rebelFlag()
 {
-    uint8_t brightness = _menu.currentBrightness();
+    if (isFirstFrame())
+    {
+        initBrightness();
 
-    setRingColor(red(brightness));
+        setRingColor(red(knobs.brightness));
 
-    setPixelColor(_ring.topQuarter()/2-6, white(brightness), _ring.topQuarter()+8, CW, _ring.topQuarter(), 2);
-    setPixelColor(_ring.topQuarter()/2-4, blue(brightness), _ring.topQuarter()+8, CW, _ring.topQuarter(), 8);
-    setPixelColor(_ring.topQuarter()/2+4, white(brightness), _ring.topQuarter()+8, CW, _ring.topQuarter(), 2);
+        setPixelColor(_ring.topQuarter()/2-6, white(knobs.brightness), _ring.topQuarter()+8, CW, _ring.topQuarter(), 2);
+        setPixelColor(_ring.topQuarter()/2-4, blue(knobs.brightness), _ring.topQuarter()+8, CW, _ring.topQuarter(), 8);
+        setPixelColor(_ring.topQuarter()/2+4, white(knobs.brightness), _ring.topQuarter()+8, CW, _ring.topQuarter(), 2);
 
-    setPixelColor(_ring.topQuarter()/2-6, white(brightness), _ring.topQuarter()+8, CCW, _ring.topQuarter(), 2);
-    setPixelColor(_ring.topQuarter()/2-4, blue(brightness), _ring.topQuarter()+8, CCW, _ring.topQuarter(), 8);
-    setPixelColor(_ring.topQuarter()/2+4, white(brightness), _ring.topQuarter()+8, CCW, _ring.topQuarter(), 2);
+        setPixelColor(_ring.topQuarter()/2-6, white(knobs.brightness), _ring.topQuarter()+8, CCW, _ring.topQuarter(), 2);
+        setPixelColor(_ring.topQuarter()/2-4, blue(knobs.brightness), _ring.topQuarter()+8, CCW, _ring.topQuarter(), 8);
+        setPixelColor(_ring.topQuarter()/2+4, white(knobs.brightness), _ring.topQuarter()+8, CCW, _ring.topQuarter(), 2);
 
-    show(_menu.currentSpeed());
+        show(200);
+    }
 }
 
 
@@ -562,69 +613,81 @@ void Patterns::rainbowGroup(uint8_t pattern)
 
 void Patterns::rainbowFadeWave()
 {
-    static uint8_t color = 0;
-    uint8_t brightness = _menu.currentBrightness();
+    initBrightness();
+    initSpeed();
 
-    uint8_t c = color;
+    if (isFirstFrame())
+        mFrame.color = 0;
 
+    uint8_t c = mFrame.color;
     for (uint16_t i=0; i<_ring.halfPixels(); i++)
     {
-        setPixelColor(i, toColor(c, brightness), 1, CW);
-        setPixelColor(i, toColor(c++, brightness), 1, CCW);
+        setPixelColor(i, toColor(c, knobs.brightness), 1, CW);
+        setPixelColor(i, toColor(c++, knobs.brightness), 1, CCW);
     }
 
-    color+=5;
+    mFrame.color += 5;
 
-    show(_menu.currentSpeed());
+    show(knobs.speed);
 }
 
 void Patterns::rainbowFade()
 {
-    static uint8_t color = 0;
-    uint8_t brightness = _menu.currentBrightness();
+    initBrightness();
+    initSpeed();
 
-    setRingColor(toColor(color++, brightness));
+    if (isFirstFrame())
+        mFrame.color = 0;
 
-    show(_menu.currentSpeed());
+    setRingColor(toColor(mFrame.color++, knobs.brightness));
+
+    show(knobs.speed);
 }
 
 void Patterns::rainbowTheaterWave()
 {
-    static int q = 0;
-    static uint8_t color = 0;
+    initBrightness();
+    initSpeed();
 
-    uint8_t brightness = _menu.currentBrightness();
-
-    uint8_t c = color;
-
-    for (uint16_t i=0; i<_ring.halfPixels(); i+=3)
+    if (isFirstFrame())
     {
-        setPixelColor(i+q, toColor(c, brightness), 1, CW);
-        setPixelColor(i+q, toColor(c++, brightness), 1, CCW);
+        mFrame.color = 0;
+        mFrame.offset = 0;
     }
 
-    show(_menu.currentSpeed());
+    uint8_t c = mFrame.color;
+    for (uint16_t i=0; i<_ring.halfPixels(); i+=3)
+    {
+        setPixelColor(i+mFrame.offset, toColor(c, knobs.brightness), 1, CW);
+        setPixelColor(i+mFrame.offset, toColor(c++, knobs.brightness), 1, CCW);
+    }
+
+    show(knobs.speed);
     clear();
 
-    q = inc(q, 3);
-    color+=5;
+    mFrame.offset = inc(mFrame.offset, 3);
+    mFrame.color += 5;
 }
 
 void Patterns::rainbowTheater()
 {
-    static int q = 0;
-    static uint8_t color = 0;
+    initBrightness();
+    initSpeed();
 
-    uint8_t brightness = _menu.currentBrightness();
+    if (isFirstFrame())
+    {
+        mFrame.color = 0;
+        mFrame.position = 0;
+    }
 
-    setPixelColor(q, toColor(color, brightness), _ring.halfPixels(), CW, 3);
-    setPixelColor(q, toColor(color, brightness), _ring.halfPixels(), CCW, 3);
+    setPixelColor(mFrame.position, toColor(mFrame.color, knobs.brightness), _ring.halfPixels(), CW, 3);
+    setPixelColor(mFrame.position, toColor(mFrame.color, knobs.brightness), _ring.halfPixels(), CCW, 3);
 
-    show(_menu.currentSpeed());
+    show(knobs.speed);
     clear();
 
-    q = inc(q, 3);
-    color+=5;
+    mFrame.position = inc(mFrame.position, 3);
+    mFrame.color += 5;
 }
 
 
@@ -667,22 +730,21 @@ void Patterns::colorGroup(uint8_t pattern)
 
 void Patterns::onFire()
 {
+    const int sparkAmount = 120;
+    const int cooldownAmount = 72;
     const int halfRing = MAX_PIXELS/2;
-    static byte heat[halfRing];
-    int cooldown;
 
-    int cd = 72; //map(_menu.currentColor(), 1, 254, 20, 100);
-    int sp = 120; //map(_menu.currentSpeed(), 1, 254, 50, 200);
+    static byte heat[halfRing];
 
     // Step 1.  Cool down every cell a little
-    for( uint16_t i = 0; i < _ring.halfPixels(); i++) 
+    for( uint16_t i=0; i<_ring.halfPixels(); i++) 
     {
-        cooldown = random(0, ((cd * 10) / _ring.halfPixels()) + 2);
+        int cooldown = random(0, ((cooldownAmount * 10) / _ring.halfPixels()) + 2);
 
-        if(cooldown>heat[i]) 
-            heat[i]=0;
+        if(cooldown > heat[i]) 
+            heat[i] = 0;
         else
-            heat[i]=heat[i]-cooldown;
+            heat[i] = heat[i] - cooldown;
     }
 
     // Step 2.  Heat from each cell drifts 'up' and diffuses a little
@@ -692,14 +754,14 @@ void Patterns::onFire()
     }
 
     // Step 3.  Randomly ignite new 'sparks' near the bottom
-    if( random(255) < sp ) 
+    if( random(255) < sparkAmount ) 
     {
         int y = random(7);
-        heat[y] = heat[y] + random(160,255);
+        heat[y] = heat[y] + random(160, 255);
     }
 
     // Step 4.  Convert heat to LED colors
-    for( uint16_t j = 0; j < _ring.halfPixels(); j++) 
+    for( uint16_t j=0; j<_ring.halfPixels(); j++) 
     {
         // Scale 'heat' down from 0-255 to 0-191
         byte t192 = map(heat[j], 0, 255, 0, 191);
@@ -726,140 +788,126 @@ void Patterns::onFire()
 
 void Patterns::comet()
 {
-    static uint16_t pos = 0;
+    initSpeed();
+    initColor();
 
-    uint16_t lastPixel;
-    uint8_t color = _menu.currentColor();
+    if (isFirstFrame())
+        mFrame.position = 0;
 
+    // Randomly fade any pixels already displayed.
     for (uint16_t i=0; i<_ring.numPixels(); i++)
     {
         if (random(10) > 5)
             fadeToBlack(i, 0.25);
     }
 
+    // Move the comet forward.
     for (int tail=10; tail>=1; tail--)
     {
-        lastPixel = loop(pos, tail, _ring.numPixels());
-        if (color > 252)
-            setPixelColor(lastPixel, white(255));
-        else
-            setPixelColor(lastPixel, toColor(color, 255));
+        uint16_t lastPixel = loop(mFrame.position, tail, _ring.numPixels());
+
+        setPixelColor(lastPixel, toColor(knobs.color, 255, true));
     }
 
-    show(_menu.currentSpeed());
+    show(knobs.speed);
 
-    pos = inc(pos, _ring.numPixels());
+    mFrame.position = inc(mFrame.position, _ring.numPixels());
 }
 
 void Patterns::fireFlies()
 {
-    static uint16_t fly[16];
-    static uint8_t brightness[16];
+    initSpeed();
+    initColor();
 
-    uint8_t color = _menu.currentColor();
-
-    if (mInit)
+    if (isFirstFrame())
     {
-        for (int i=0; i<16; i++)
+        for (uint16_t i=0; i<sizeof(flies)/sizeof(fireFly); i++)
         {
-            fly[i] = random(_ring.numPixels());
-            brightness[i] = random(1,17);
+            flies[i].position = random(_ring.numPixels());
+            flies[i].brightness = random(1,17);
         }
-
-        mInit = false;
     }
 
-    for (int j=0; j<16; j++)
+    for (uint16_t j=0; j<sizeof(flies)/sizeof(fireFly); j++)
     {
-        brightness[j] = dec(brightness[j], 16);
+        flies[j].brightness = dec(flies[j].brightness, 16);
 
-        if (brightness[j] == 0)
+        if (flies[j].brightness == 0)
         {
-            setPixelColor(fly[j], black());
+            setPixelColor(flies[j].position, black());
 
-            fly[j] = random(_ring.numPixels());
-            brightness[j] = 16;
+            flies[j].position = random(_ring.numPixels());
+            flies[j].brightness = 16;
         }
 
-        if (color > 252)
-            setPixelColor(fly[j], white((brightness[j]*brightness[j])-1));
-        else
-            setPixelColor(fly[j], toColor(color, (brightness[j]*brightness[j])-1));
+        setPixelColor(flies[j].position, toColor(knobs.color, (flies[j].brightness*flies[j].brightness)-1), true);
     }
 
-    show(_menu.currentSpeed());
+    show(knobs.speed);
 }
 
 void Patterns::randomPixels()
 {
-    uint8_t color = _menu.currentColor();
-    uint8_t bright = _menu.currentBrightness();
+    initBrightness();
+    initSpeed();
+    initColor();
 
     for (uint16_t i=0; i<_ring.numPixels(); i++)
-    {
-        if (color > 252)
-            setPixelColor(i, (uint32_t)(random(0, 100) > 50 ? white(bright) : 0));
-        else
-            setPixelColor(i, (uint32_t)(random(0, 100) > 50 ? toColor(color, bright) : 0));
-    }
+        setPixelColor(i, (uint32_t)(random(0, 100) > 70 ? toColor(knobs.color, knobs.brightness, true) : 0));
 
-    show(_menu.currentSpeed());
+    show(knobs.speed);
 }
 
 void Patterns::flickerColor()
 {
-    uint8_t color = _menu.currentColor();
-    uint8_t brightness = random(0, 255);
+    initColor();
 
-    if (random(0, brightness) < 10)
+    mFrame.brightness = random(0, 255);
+    mFrame.speed = random(10, 100);
+
+    if (random(0, mFrame.brightness) < 10)
     {
-        if (color > 252)
-            setRingColor(white(brightness));
-        else
-            setRingColor(toColor(color, brightness));
+        setRingColor(toColor(knobs.color, mFrame.brightness, true));
 
-        show(random(10, 100));
+        show(mFrame.speed);
     }
-}
-
-void Patterns::starBurst()
-{
-    static uint16_t pos = 0;
-
-    clear();
-
-    uint16_t lastPixel;
-    uint8_t color = _menu.currentColor();
-
-    for (int tail=16; tail>=1; tail--)
-    {
-        lastPixel = loop(pos, tail, _ring.numPixels());
-        if (color > 252)
-            setPixelColor(lastPixel, white((tail*tail)-1));
-        else
-            setPixelColor(lastPixel, toColor(color, (tail*tail)-1));
-    }
-
-    show(_menu.currentSpeed());
-
-    setPixelColor(lastPixel, black());
-
-    pos = inc(pos, _ring.numPixels());
 }
 
 void Patterns::solidColor()
 {
-    if (twinkle() || _menu.currentSpeed() < 5)
-    {
-        if (_menu.currentColor() > 252)
-            setRingColor(white(_menu.currentBrightness()));
-        else
-            setRingColor(toColor(_menu.currentColor(), _menu.currentBrightness()));
-    }
+    initBrightness();
+    initSpeed();
+    initColor();
+
+    if (twinkle() || knobs.speed < 5)
+        setRingColor(toColor(knobs.color, knobs.brightness, true));
     else
         clear();
 
-    show(_menu.currentSpeed());
+    show(knobs.speed);
+}
+
+void Patterns::starBurst()
+{
+    initSpeed();
+    initColor();
+
+    if (isFirstFrame())
+        mFrame.position = 0;
+
+    uint16_t lastPixel;
+    for (int tail=16; tail>=1; tail--)
+    {
+        lastPixel = loop(mFrame.position, tail, _ring.numPixels());
+
+        setPixelColor(lastPixel, toColor(knobs.color, (tail*tail)-1, true));
+    }
+
+    show(knobs.speed);
+
+    setPixelColor(lastPixel, black());
+
+    mFrame.position = inc(mFrame.position, _ring.numPixels());
 }
 
 
@@ -895,143 +943,129 @@ void Patterns::bounceGroup(uint8_t pattern)
 
 void Patterns::rainbowNightRider()
 {
-    static uint8_t color = 0;
+    if (isFirstFrame())
+        mFrame.color = 0;
 
-    nightRider(color);
-    color+=2;
+    nightRider(mFrame.color);
+
+    mFrame.color += 2;
 }
 
 void Patterns::rainbowQuadRider()
 {
-    static uint8_t color = 0;
+    if (isFirstFrame())
+        mFrame.color = 0;
 
-    quadRider(color);
-    color+=2;
+    quadRider(mFrame.color);
+
+    mFrame.color += 2;
 }
 
 void Patterns::colorNightRider()
 {
-    uint8_t color = _menu.currentColor();
-
-    if (color > 252)
-        nightRider(white(), false);
-    else
-        nightRider(_menu.currentColor());
+    initColor();
+    nightRider(knobs.color);
 }
 
 void Patterns::colorQuadRider()
 {
-    uint8_t color = _menu.currentColor();
-
-    if (color > 252)
-        quadRider(white(), false);
-    else
-        quadRider(_menu.currentColor());
+    initColor();
+    quadRider(knobs.color);
 }
 
-void Patterns::nightRider(uint8_t color, bool hasBackground)
+void Patterns::nightRider(uint8_t color)
 {
+    initSpeed();
+
     static uint16_t lastPixel = _ring.halfPixels() - 1;
 
-    if (hasBackground)
-        setRingColor(toColor(255 - color, 9));
+    setRingColor(toOppositeColor(color, 9, true));
 
     for (int i=0; i<mPoints; i++)
     {
-        uint8_t bright = max(((i*i)+1), 4);
-        setPixelColor(comet2[i].x, toColor(color, bright), 1);
-        setPixelColor(comet2[i].x, toColor(color, bright), 1, CCW);
+        uint8_t brightness = max(((i*i)+1), 4);
+        setPixelColor(comet2[i].x, toColor(color, brightness, true), 1);
+        setPixelColor(comet2[i].x, toColor(color, brightness, true), 1, CCW);
 
         bounce(&comet2[i].x, &comet2[i].cw, lastPixel);
     }
 
-    show(_menu.currentSpeed());
+    show(knobs.speed);
 }
 
-void Patterns::quadRider(uint8_t color, bool hasBackground)
+void Patterns::quadRider(uint8_t color)
 {
+    initSpeed();
+    
     static uint16_t lastPixel = _ring.quarterPixels() - 1;
 
-    if (hasBackground)
-        setRingColor(toColor(255 - color, 9));
+    setRingColor(toOppositeColor(color, 9, true));
 
     for (int i=0; i<mPoints; i++)
     {
-        uint8_t bright = max(((i*i)+1), 4);
-        setPixelColor(comet4[i].x, toColor(color, bright), 1);
-        setPixelColor(comet4[i].x, toColor(color, bright), 1, CCW);
+        uint8_t brightness = max(((i*i)+1), 4);
+        setPixelColor(comet4[i].x, toColor(color, brightness, true), 1);
+        setPixelColor(comet4[i].x, toColor(color, brightness, true), 1, CCW);
 
-        setPixelColor(_ring.halfPixels()-comet4[i].x-1, toColor(color, bright), 1);
-        setPixelColor(_ring.halfPixels()-comet4[i].x-1, toColor(color, bright), 1, CCW);
+        setPixelColor(_ring.halfPixels()-comet4[i].x-1, toColor(color, brightness, true), 1);
+        setPixelColor(_ring.halfPixels()-comet4[i].x-1, toColor(color, brightness, true), 1, CCW);
 
         bounce(&comet4[i].x, &comet4[i].cw, lastPixel);
     }
 
-    show(_menu.currentSpeed());
+    show(knobs.speed);
 }
 
 void Patterns::bouncingBalls()
 {
-    const int   StartHeight = 1;
-    const float Gravity = -9.81;
-    const float ImpactVelocityStart = sqrt( -2 * Gravity * StartHeight );
+    const int   startHeight = 1;
+    const float gravity = -9.81;
+    const float impactVelocityStart = sqrt(-2 * gravity * startHeight);
 
-    static uint8_t color = 0;
+    uint16_t ballCount = sizeof(balls)/sizeof(bouncingBall);
 
-    const uint8_t BallCount = 4;
-    static float Height[BallCount];
-    static float ImpactVelocity[BallCount];
-    static float TimeSinceLastBounce[BallCount];
-    static int   Position[BallCount];
-    static long  ClockTimeSinceLastBounce[BallCount];
-    static float Dampening[BallCount];
+    initBrightness();
+    initColor();
 
-    uint8_t brightness = _menu.currentBrightness();
-    uint8_t balls = map(_menu.currentColor(), 0, 255, 1, 4);
-
-    if (mInit)
+    if (isFirstFrame())
     {
-        for (int i = 0 ; i < BallCount ; i++) 
+        for (uint16_t i=0; i<ballCount; i++) 
         {  
-            ClockTimeSinceLastBounce[i] = millis();
-            Height[i] = StartHeight;
-            Position[i] = 0;
-            ImpactVelocity[i] = ImpactVelocityStart;
-            TimeSinceLastBounce[i] = 0;
-            Dampening[i] = 0.90 - float(i)/pow(BallCount,2);
+            balls[i].clockTimeSinceLastBounce = millis();
+            balls[i].height = startHeight;
+            balls[i].position = 0;
+            balls[i].impactVelocity = impactVelocityStart;
+            balls[i].timeSinceLastBounce = 0;
+            balls[i].dampening = 0.90 - float(i)/pow(ballCount,2);
         }
-
-        mInit = false;
     }
 
-    for (int i = 0 ; i < BallCount ; i++) 
+    for (uint16_t i=0; i<ballCount; i++) 
     {
-        TimeSinceLastBounce[i] =  millis() - ClockTimeSinceLastBounce[i];
-        Height[i] = 0.5 * Gravity * pow( TimeSinceLastBounce[i]/1000 , 2.0 ) + ImpactVelocity[i] * TimeSinceLastBounce[i]/1000;
+        balls[i].timeSinceLastBounce =  millis() - balls[i].clockTimeSinceLastBounce;
+        balls[i].height = 0.5 * gravity * pow( balls[i].timeSinceLastBounce/1000 , 2.0 ) + balls[i].impactVelocity * balls[i].timeSinceLastBounce/1000;
 
-        if ( Height[i] < 0 ) 
+        if ( balls[i].height < 0 ) 
         {                     
-            Height[i] = 0;
-            ImpactVelocity[i] = Dampening[i] * ImpactVelocity[i];
-            ClockTimeSinceLastBounce[i] = millis();
+            balls[i].height = 0;
+            balls[i].impactVelocity = balls[i].dampening * balls[i].impactVelocity;
+            balls[i].clockTimeSinceLastBounce = millis();
 
-            if ( ImpactVelocity[i] < 0.01 ) 
-                ImpactVelocity[i] = ImpactVelocityStart;
+            if ( balls[i].impactVelocity < 0.01 ) 
+                balls[i].impactVelocity = impactVelocityStart;
         }
 
-        Position[i] = round( Height[i] * (_ring.halfPixels() - 2) / StartHeight);
+        balls[i].position = round(balls[i].height * (_ring.halfPixels() - 2) / startHeight);
     }
 
-    for (int i = 0 ; i < balls ; i++) 
+    for (uint16_t i=0; i<ballCount; i++) 
     {
-        setPixelColor(_ring.halfPixels()-Position[i]-2, toColor(color, brightness), 2, DirectionType::CW);
-        setPixelColor(_ring.halfPixels()-Position[i]-2, toColor(color, brightness), 2, DirectionType::CCW);
+        setPixelColor(_ring.halfPixels()-balls[i].position-2, toColor(knobs.color, knobs.brightness, true), 2, DirectionType::CW);
+        setPixelColor(_ring.halfPixels()-balls[i].position-2, toColor(knobs.color, knobs.brightness, true), 2, DirectionType::CCW);
     }
 
     show(10);
     clear();
-
-    color+=2;
 }
 
 void Patterns::bounce(uint16_t *pos, bool *direction, uint16_t lastPixel)
@@ -1097,63 +1131,72 @@ void Patterns::holidayGroup(uint8_t pattern)
     }
 }
 
-void Patterns::holidayLights(uint32_t colors[], uint16_t count)
+void Patterns::holidayLights(uint32_t colors[], uint16_t colorCount)
 {
-    static uint8_t ndx = 0;
+    initSpeed();
+    initSize();
 
-    uint8_t speed = _menu.currentSpeed();
+    if (isFirstFrame())
+        mFrame.offset = 0;
 
-    if (speed > 5)
+    if (knobs.size > 0)
     {
-        uint8_t section = ((_menu.currentColor() >> 4) & 0x000E) + (count*2); // Range: count...(30+count)
-        section = section - (section % (count*2)); // Multiples of count * 2
-        uint8_t segment = section / count;
+        // How big does the user want their color segments?
+        uint8_t blockSize = map(knobs.size, 1, 254, colorCount, 60) * 2;
 
-        for (uint16_t i=0; i<count; i++)
+        // Make sure we can fit our colors into the segment.        
+        blockSize = blockSize - (blockSize % colorCount);
+
+        uint8_t stripeSize = blockSize / colorCount;
+
+        for (uint16_t i=0; i<colorCount; i++)
         {
-            setPixelColor(loop(i*segment,ndx,section), colors[i], _ring.halfPixels(), CW, section, segment);
-            setPixelColor(loop(i*segment,ndx,section), colors[i], _ring.halfPixels(), CCW, section, segment);
-        }
+            setPixelColor(CW, mFrame.offset, _ring.halfPixels(), colors[i], blockSize, stripeSize);
+            setPixelColor(CCW, mFrame.offset, _ring.halfPixels(), colors[i], blockSize, stripeSize);
+            // setPixelColor(loop(i*segment,ndx,section), colors[i], _ring.halfPixels(), CW, section, segment);
+            // setPixelColor(loop(i*segment,ndx,section), colors[i], _ring.halfPixels(), CCW, section, segment);
+        }        
 
-        ndx = inc(ndx, section);
+        mFrame.offset = inc(mFrame.offset, blockSize);
         
-        show(speed);
+        show(knobs.speed);
     }
     else
     {
         for (uint16_t i=0; i<_ring.numPixels(); i++)
-        {
-            setPixelColorAbs(i, colors[random(0,count)]);
-        }
+            setPixelColorAbs(i, colors[random(0,colorCount)]);
 
-        show(120);
+        show(knobs.speed);
+        mFrame.offset = 0;
     }
 }
 
 void Patterns::holidaySparkle()
 {
-    uint8_t bright = _menu.currentBrightness();
+    initBrightness();
+    initSpeed();
+    initColor();
 
     // Turning the color/size knob will control how many 'black' pixels are included.
-    uint8_t color = map(_menu.currentColor(), 0, 254, 1, 100);
+    uint8_t color = map(knobs.color, 0, 254, 1, 100);
 
     for (uint16_t i=0; i<_ring.numPixels(); i++)
-        setPixelColor(i, (uint32_t)(random(0, 100) > color ? toColor(random(1, 255), bright) : 0));
+        setPixelColor(i, (uint32_t)(random(0, 100) > color ? toColor(random(1, 255), knobs.brightness) : 0));
 
-    show(_menu.currentSpeed());
+    show(knobs.speed);
 }
 
 void Patterns::christmasLights()
 {
-    uint8_t brightness = _menu.currentBrightness();
+    initBrightness();
 
     uint32_t colors[] =
     {
-        green(brightness),
-        orange(brightness),
-        blue(brightness),
-        yellow(brightness),
-        red(brightness)
+        green(knobs.brightness),
+        orange(knobs.brightness),
+        blue(knobs.brightness),
+        yellow(knobs.brightness),
+        red(knobs.brightness)
     };
 
     holidayLights(colors, sizeof(colors)/sizeof(uint32_t));
@@ -1161,12 +1204,12 @@ void Patterns::christmasLights()
 
 void Patterns::valentineLights()
 {
-    uint8_t brightness = _menu.currentBrightness();
+    initBrightness();
 
     uint32_t colors[] =
     {
-        red(brightness),
-        white(brightness/4)
+        red(knobs.brightness),
+        white(knobs.brightness/4)
     };
 
     holidayLights(colors, sizeof(colors)/sizeof(uint32_t));
@@ -1174,13 +1217,13 @@ void Patterns::valentineLights()
 
 void Patterns::halloweenLights()
 {
-    uint8_t brightness = _menu.currentBrightness();
+    initBrightness();
 
     uint32_t colors[] =
     {
-        green(brightness),
-        orange(brightness),
-        white(brightness/4)
+        green(knobs.brightness),
+        orange(knobs.brightness),
+        white(knobs.brightness/4)
     };
 
     holidayLights(colors, sizeof(colors)/sizeof(uint32_t));
@@ -1188,13 +1231,13 @@ void Patterns::halloweenLights()
 
 void Patterns::easterLights()
 {
-    uint8_t brightness = _menu.currentBrightness();
+    initBrightness();
 
     uint32_t colors[] =
     {
-        yellow(brightness),
-        purple(brightness),
-        white(brightness/4)
+        yellow(knobs.brightness),
+        purple(knobs.brightness),
+        white(knobs.brightness/4)
     };
 
     holidayLights(colors, sizeof(colors)/sizeof(uint32_t));
@@ -1202,13 +1245,13 @@ void Patterns::easterLights()
 
 void Patterns::independenceLights()
 {
-    uint8_t brightness = _menu.currentBrightness();
+    initBrightness();
 
     uint32_t colors[] =
     {
-        red(brightness),
-        white(brightness/4),
-        blue(brightness)
+        red(knobs.brightness),
+        white(knobs.brightness/4),
+        blue(knobs.brightness)
     };
 
     holidayLights(colors, sizeof(colors)/sizeof(uint32_t));
@@ -1216,12 +1259,12 @@ void Patterns::independenceLights()
 
 void Patterns::saintPatrickLights()
 {
-    uint8_t brightness = _menu.currentBrightness();
+    initBrightness();
 
     uint32_t colors[] =
     {
-        green(brightness),
-        white(brightness/4)
+        green(knobs.brightness),
+        white(knobs.brightness/4)
     };
 
     holidayLights(colors, sizeof(colors)/sizeof(uint32_t));
@@ -1229,12 +1272,12 @@ void Patterns::saintPatrickLights()
 
 void Patterns::thanksGivingLights()
 {
-    uint8_t brightness = _menu.currentBrightness();
+    initBrightness();
 
     uint32_t colors[] =
     {
-        orange(brightness),
-        white(brightness/4)
+        orange(knobs.brightness),
+        white(knobs.brightness/4)
     };
 
     holidayLights(colors, sizeof(colors)/sizeof(uint32_t));
@@ -1273,72 +1316,79 @@ void Patterns::emergencyGroup(uint8_t pattern)
 
 void Patterns::redBlueTripleFlash()
 {
-    uint8_t brightness = _menu.currentBrightness();
+    initBrightness();
+    initSpeed();
 
     bool toggle = twinkle();
-    flash(50, (toggle) ? red(brightness) : blue(brightness));
-    flash(50, (toggle) ? red(brightness) : blue(brightness));
-    flash(50, (toggle) ? red(brightness) : blue(brightness));
-    delay(_menu.currentSpeed());
+    flash(50, (toggle) ? red(knobs.brightness) : blue(knobs.brightness));
+    flash(50, (toggle) ? red(knobs.brightness) : blue(knobs.brightness));
+    flash(50, (toggle) ? red(knobs.brightness) : blue(knobs.brightness));
+
+    delay(knobs.speed);
 }
 
 void Patterns::redBlueHalfRingFlash()
 {
-    uint8_t brightness = _menu.currentBrightness();
+    initBrightness();
+    initSpeed();
 
     clear();
 
     if (twinkle())
-        setPixelColor(0, red(brightness), _ring.halfPixels());
+        setPixelColor(0, red(knobs.brightness), _ring.halfPixels());
     else
-        setPixelColor(0, blue(brightness), _ring.halfPixels(), CCW);
+        setPixelColor(0, blue(knobs.brightness), _ring.halfPixels(), CCW);
 
-    show(_menu.currentSpeed());
+    show(knobs.speed);
 }
 
 void Patterns::redBlueHalfRingCrawl()
 {
-    static uint8_t pos = 255;
+    initBrightness();
+    initSpeed();
+    initSize();
 
-    uint8_t brightness = _menu.currentBrightness();
-    uint8_t size = map(_menu.currentColor(), 1, 254, 4, 20);
+    if (isFirstFrame())
+        mFrame.position = 255;
 
-    pos = (pos < _ring.halfPixels()) ? pos + 1 : size;
+    uint8_t size = map(knobs.size, 0, 254, 4, 20);
+
+    mFrame.position = inc(mFrame.position, _ring.halfPixels());
 
     clear();
 
-    if (pos == size)
+    if (mFrame.position == size)
     {
         // Flash the top section before the crawl...
         for (int i=0; i<3; i++)
         {
-            setPixelColor(0, red(brightness), size);
-            setPixelColor(0, blue(brightness), size, CCW);
+            setPixelColor(0, red(knobs.brightness), size);
+            setPixelColor(0, blue(knobs.brightness), size, CCW);
             show(50);
             clear();
             show(50);
         }
     }
 
-    setPixelColor(0, red(brightness), pos);
-    setPixelColor(0, blue(brightness), pos, CCW);
+    setPixelColor(0, red(knobs.brightness), mFrame.position);
+    setPixelColor(0, blue(knobs.brightness), mFrame.position, CCW);
 
-    show(_menu.currentSpeed());
+    show(knobs.speed);
 }
 
 void Patterns::redBlueTripleSegmentFlash()
 {
-    uint8_t brightness = _menu.currentBrightness();
+    initBrightness();
 
     uint32_t colors1[] =
     {
-        red(brightness),
+        red(knobs.brightness),
         black()
     };
 
     uint32_t colors2[] =
     {
-        blue(brightness),
+        blue(knobs.brightness),
         black()
     };
 
@@ -1350,12 +1400,12 @@ void Patterns::redBlueTripleSegmentFlash()
 
 void Patterns::chasingPoliceLights()
 {
-    uint8_t brightness = _menu.currentBrightness();
+    initBrightness();
 
     uint32_t colors[] =
     {
-        red(brightness),
-        blue(brightness),
+        red(knobs.brightness),
+        blue(knobs.brightness),
         black()
     };
 
@@ -1364,21 +1414,25 @@ void Patterns::chasingPoliceLights()
 
 void Patterns::chaseLights(uint32_t colors[], uint16_t count)
 {
-    static uint8_t ndx = 0;
+    initSpeed();
+    initSize();
 
-    uint8_t section = ((_menu.currentColor() >> 4) & 0x000E) + count; // Range: count...30
+    if (isFirstFrame())
+        mFrame.position = 0;
+
+    uint8_t section = ((knobs.size >> 4) & 0x000E) + count; // Range: count...30
     section = section - (section % count); // Multiples of count
     uint8_t segment = section / count;
 
     for (uint16_t i=0; i<count; i++)
     {
-        setPixelColor(loop(i*segment,ndx,section), colors[i], _ring.halfPixels(), CW, section, segment);
-        setPixelColor(loop(i*segment,ndx,section), colors[i], _ring.halfPixels(), CCW, section, segment);
+        setPixelColor(loop(i*segment,mFrame.position,section), colors[i], _ring.halfPixels(), CW, section, segment);
+        setPixelColor(loop(i*segment,mFrame.position,section), colors[i], _ring.halfPixels(), CCW, section, segment);
     }
 
-    ndx = inc(ndx, section);
+    mFrame.position = inc(mFrame.position, section);
 
-    show(_menu.currentSpeed());
+    show(knobs.speed);
 }
 
 
@@ -1387,23 +1441,19 @@ void Patterns::chaseLights(uint32_t colors[], uint16_t count)
 //
 void Patterns::cycleGroup()
 {
-    static uint8_t group = patternGroupType::FLAG_GROUP;
-    static uint8_t pattern = 0;
-    static unsigned long timer = 0;
-
-    if (millis() > timer)
+    if (millis() > cycle.timer)
     {
-        if (timer > 0)
-            group = inc(group, patternGroupType::FLAG_GROUP, patternGroupType::EMERGENCY_GROUP);
+        if (cycle.timer > 0)
+            cycle.group = inc(cycle.group, patternGroupType::FLAG_GROUP, patternGroupType::EMERGENCY_GROUP);
 
-        pattern = _menu.defaultPattern(group);
+        cycle.pattern = _menu.defaultPattern(cycle.group);
 
-        timer = millis() + 8000; // 8 seconds
- 
-        mInit = true;
-    }
+        cycle.timer = millis() + 8000; // 8 seconds
 
-    displayPattern(group, pattern);
+        clear(true);
+     }
+
+    displayPattern(cycle.group, cycle.pattern);
 }
 
 
@@ -1412,47 +1462,43 @@ void Patterns::cycleGroup()
 //
 void Patterns::cycleAllGroup()
 {
-    static uint8_t group = patternGroupType::FLAG_GROUP;
-    static uint8_t pattern = 0;
-    static unsigned long timer = 0;
-
-    if (millis() > timer)
+    if (millis() > cycle.timer)
     {
-        if (timer > 0)
+        if (cycle.timer > 0)
         {
-            pattern = inc(pattern, _patterns.groupPatternCount((patternGroupType)group)-1);
+            cycle.pattern = inc(cycle.pattern, _patterns->groupPatternCount((patternGroupType)cycle.group)-1);
 
-            if (pattern == 0)
-                group = inc(group, patternGroupType::FLAG_GROUP, patternGroupType::EMERGENCY_GROUP);
+            if (cycle.pattern == 0)
+                cycle.group = inc(cycle.group, patternGroupType::FLAG_GROUP, patternGroupType::EMERGENCY_GROUP+1);
         }
 
-        _menu.restorePattern(group, pattern);
+        _menu.restorePattern(cycle.group, cycle.pattern);
 
-        timer = millis() + 8000; // 8 seconds
+        cycle.timer = millis() + 8000; // 8 seconds
 
-        mInit = true;
+        clear(true);
     }
 
-    displayPattern(group, pattern);
+    displayPattern(cycle.group, cycle.pattern);
 }
 
 
 // DISPLAY LED TEST PATTERNS
 void Patterns::ledTest()
 {
-    ledTest(_menu.currentSpeed());
+    initSpeed();
+
+    ledTest(knobs.speed);
 }
 
 void Patterns::ledTest(uint8_t wait)
 {
-    setRingColor(red());
-    show(wait);
-    setRingColor(green());
-    show(wait);
-    setRingColor(blue());
-    show(wait);
-    setRingColor(white());
-    show(wait);
+    for (int i=0; i<8; i++)
+    {
+        setRingColor(rainbowColor(i,255,true));
+        show(wait);
+    }
+
     clear();
     show(wait);
 }
@@ -1524,16 +1570,35 @@ uint8_t Patterns::initializeTopQuarter(uint8_t value)
     return topQuarter;
 }
 
-void Patterns::setPixelColor(uint16_t relativePos, uint32_t color, uint16_t length, DirectionType dir, uint16_t skip, uint16_t litPixels)
+void Patterns::setPixelColor(DirectionType dir, uint16_t start, uint32_t color, uint16_t length)
 {
-    for (uint16_t i=relativePos; i<min((relativePos+length), _ring.numPixels()); i+=skip)
-    {
-        uint16_t barLength = min((i+litPixels), relativePos+length);
+    for (uint16_t i=start; i<min(length, _ring.numPixels()); i++)
+        setPixelColorAbs(_ring.pixel(i, dir), color);
+}
 
-        for (uint16_t j=i; j<min(barLength, _ring.numPixels()); j++)
+void Patterns::setPixelColor(DirectionType dir, uint16_t start, uint16_t end, uint32_t color, uint16_t blockSize, uint16_t stripeSize)
+{
+    for (uint16_t i=start; i<end; i+=blockSize)
+    {
+        for (uint16_t j=i; j<i+stripeSize; j++)
         {
-            uint16_t absPos = _ring.pixel(j, dir);
-            setPixelColorAbs(absPos, color);
+            setPixelColorAbs(_ring.pixel(j % end, dir), color);
+        }
+    }
+}
+
+void Patterns::setPixelColor(uint16_t startPosition, uint32_t color, uint16_t length, DirectionType dir, uint16_t skip, uint16_t litPixels)
+{
+    // Truncate at the end of our pixel strip if needed.
+    uint16_t maxPixels = min(startPosition + length, _ring.numPixels());
+
+    for (uint16_t i=startPosition; i<maxPixels; i+=skip)
+    {
+        uint16_t colorBarLength = min(i + litPixels, maxPixels);
+
+        for (uint16_t j=i; j<colorBarLength; j++)
+        {
+            setPixelColorAbs(_ring.pixel(j, dir), color);
         }
     }
 }

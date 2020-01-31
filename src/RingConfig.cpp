@@ -31,6 +31,12 @@ void RingConfig::begin(uint16_t writeOffset)
         _serialDebug.infoInt("|-TopQuarter", mTopQuarter);
         _serialDebug.infoInt("|-Direction", (int)mDirection);
     }
+    else
+    {
+        // Not intialized, then clear it out - just in case.
+        for (uint16_t i=0; i<EEPROM.length(); i++) 
+            EEPROM.write(i, 0);
+    }
 }
 
 bool RingConfig::isInitialized()
@@ -46,7 +52,7 @@ bool RingConfig::bothButtonsOpen()
 void RingConfig::init()
 {
     // Let off the two buttons when this displays.
-    _patterns.ledTest(255);
+    _patterns->ledTest(255);
     _buzzer.beep();
 
     delay(500);
@@ -60,21 +66,21 @@ void RingConfig::init()
 
     // Initialize the numPixels variable...
     while (bothButtonsOpen())
-        mNumPixels = _patterns.initializeNumPixels(_bright.read());
+        mNumPixels = _patterns->initializeNumPixels(_bright.read());
 
     _buzzer.beep();
     delay(500);
 
     // Initialize the topCenter variable...
     while (bothButtonsOpen())
-        mTopCenter = _patterns.initializeTopCenter(min(_bright.read(), mNumPixels), (uint8_t)(mNumPixels/2));
+        mTopCenter = _patterns->initializeTopCenter(min(_bright.read(), mNumPixels), (uint8_t)(mNumPixels/2));
 
     _buzzer.beep();
     delay(500);
 
     // Initialize the topQuarter variable...
     while (bothButtonsOpen())
-        mTopQuarter = _patterns.initializeTopQuarter(min(_bright.read(), mNumPixels/2));
+        mTopQuarter = _patterns->initializeTopQuarter(min(_bright.read(), mNumPixels/2));
 
     mDirection = (digitalRead(PATTERN_BUTTON_PIN) == LOW) ? DirectionType::CCW : DirectionType::CW;
 
