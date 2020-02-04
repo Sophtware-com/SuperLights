@@ -1340,9 +1340,9 @@ void Patterns::independenceLights()
 
     uint32_t colors[] =
     {
-        red(knobs.brightness),
+        blue(knobs.brightness),
         white(knobs.brightness/4),
-        blue(knobs.brightness)
+        red(knobs.brightness)
     };
 
     stripedLights(colors, sizeof(colors)/sizeof(uint32_t));
@@ -1737,7 +1737,7 @@ uint32_t Patterns::adjustBrightness(uint32_t color, uint8_t brightness)
 
 uint32_t Patterns::scaleBrightness(uint32_t color, float percentage)
 {
-    if (color == 0 || (percentage < 0.0 && percentage > 1.0))
+    if (color == 0 || (percentage < (float)0.0 && percentage > (float)1.0))
         return color;
 
     float scale = 1.0 - percentage;
