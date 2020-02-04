@@ -21,7 +21,7 @@ const uint8_t Patterns::groupPatternCount(patternGroupType group)
 {
     switch (group) {
         case STROBE_GROUP:
-            return 4;
+            return 3;
         case FLAG_GROUP:
             return 7;
         case RAINBOW_GROUP:
@@ -84,9 +84,9 @@ const char* Patterns::patternName(uint8_t group, uint8_t pattern)
     {
         { // STROBE_GROUP
             "doubleStrobe",
-            "tripleStrobe",
             "aircraftStrobe",
             "landingLights",
+            "3",
             "4",
             "5"
             "6",
@@ -298,12 +298,9 @@ void Patterns::strobeGroup(uint8_t pattern)
             doubleStrobe();
             break;
         case 1:
-            tripleStrobe();
-            break;
-        case 2:
             aircraftStrobe();
             break;
-        case 3:
+        case 2:
             landingLights();
             break;
     }
@@ -322,34 +319,6 @@ void Patterns::doubleStrobe()
     nextFrame();
 
     if (mFrame.currentFrame < 3)
-    {
-        uint16_t len = map(knobs.size, 0, 254, 1, _ring.halfPixels());
-
-        setPixelColor(white(), 0, len);
-        setPixelColor(white(), 0, len, CCW);
-        show(50);
-        clear();
-        show(50);
-    }
-    else
-    {
-        delay(100);
-    }
-}
-
-void Patterns::tripleStrobe()
-{
-    initSize();
-
-    if (isFirstFrame())
-    {
-        mFrame.maxFrames = 10;
-        mFrame.currentFrame = 0;
-    }
-
-    nextFrame();
-
-    if (mFrame.currentFrame < 4)
     {
         uint16_t len = map(knobs.size, 0, 254, 1, _ring.halfPixels());
 

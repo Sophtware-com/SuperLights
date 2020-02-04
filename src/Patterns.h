@@ -307,7 +307,6 @@ public:
     void strobeGroup();
     void strobeGroup(uint8_t pattern);
     void doubleStrobe();
-    void tripleStrobe();
     void aircraftStrobe();
     void landingLights();
 
