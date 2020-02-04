@@ -329,6 +329,7 @@ public:
     void rainbowFade();
     void rainbowTheaterWave();
     void rainbowTheater();
+    void gayPride();
 
     // COLOR_GROUP
     void colorGroup();
@@ -363,6 +364,8 @@ public:
     void independenceLights();
     void saintPatrickLights();
     void thanksGivingLights();
+    void hanukkah();
+    void ramadan();
 
     // EMERGENCY_GROUP
     void emergencyGroup();

@@ -25,13 +25,13 @@ const uint8_t Patterns::groupPatternCount(patternGroupType group)
         case FLAG_GROUP:
             return 7;
         case RAINBOW_GROUP:
-            return 4;
+            return 5;
         case COLOR_GROUP:
             return 7;
         case BOUNCE_GROUP:
             return 5;
         case HOLIDAY_GROUP:
-            return 8;
+            return 10;
         case EMERGENCY_GROUP:
             return 5;
         case CYCLE_GROUP:
@@ -111,7 +111,7 @@ const char* Patterns::patternName(uint8_t group, uint8_t pattern)
             "rainbowTheaterWave",
             "rainbowFade",
             "rainbowTheater",
-            "4",
+            "gayPride",
             "5",
             "6",
             "7",
@@ -151,8 +151,8 @@ const char* Patterns::patternName(uint8_t group, uint8_t pattern)
             "independenceLights",
             "halloweenLights",
             "thanksGivingLights",
-            "8",
-            "9"
+            "hanukkah",
+            "ramadan"
         },
         { // EMERGENCY_GROUP
             "chasingPoliceLights",
@@ -613,6 +613,9 @@ void Patterns::rainbowGroup(uint8_t pattern)
         case 3:
             rainbowTheater();
             break;
+        case 4:
+            gayPride();
+            break;
     }
 }
 
@@ -693,6 +696,24 @@ void Patterns::rainbowTheater()
 
     mFrame.position = inc(mFrame.position, 3);
     mFrame.color += 5;
+}
+
+void Patterns::gayPride()
+{
+    initBrightness();
+
+    uint32_t colors[] =
+    {
+        violet(knobs.brightness),
+        indigo(knobs.brightness),
+        blue(knobs.brightness),
+        green(knobs.brightness),
+        yellow(knobs.brightness),
+        orange(knobs.brightness),
+        red(knobs.brightness),
+    };
+
+    stripedLights(colors, sizeof(colors)/sizeof(uint32_t));
 }
 
 
@@ -1133,6 +1154,12 @@ void Patterns::holidayGroup(uint8_t pattern)
         case 7:
             thanksGivingLights();
             break;
+        case 8:
+            hanukkah();
+            break;
+        case 9:
+            ramadan();
+            break;
     }
 }
 
@@ -1347,6 +1374,32 @@ void Patterns::thanksGivingLights()
     {
         orange(knobs.brightness),
         white(knobs.brightness/4)
+    };
+
+    stripedLights(colors, sizeof(colors)/sizeof(uint32_t));
+}
+
+void Patterns::hanukkah()
+{
+    initBrightness();
+
+    uint32_t colors[] =
+    {
+        blue(knobs.brightness),
+        white(knobs.brightness/4)
+    };
+
+    stripedLights(colors, sizeof(colors)/sizeof(uint32_t));
+}
+
+void Patterns::ramadan()
+{
+    initBrightness();
+
+    uint32_t colors[] =
+    {
+        purple(knobs.brightness),
+        yellow(knobs.brightness)
     };
 
     stripedLights(colors, sizeof(colors)/sizeof(uint32_t));
