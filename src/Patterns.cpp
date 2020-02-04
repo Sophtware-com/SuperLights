@@ -1492,7 +1492,7 @@ void Patterns::cycleGroup()
     if (millis() > cycle.timer)
     {
         if (cycle.timer > 0)
-            cycle.group = inc(cycle.group, patternGroupType::FLAG_GROUP, patternGroupType::EMERGENCY_GROUP);
+            cycle.group = inc(cycle.group, patternGroupType::FLAG_GROUP, patternGroupType::EMERGENCY_GROUP+1);
 
         cycle.pattern = _menu.defaultPattern(cycle.group);
 
@@ -1514,7 +1514,7 @@ void Patterns::cycleAllGroup()
     {
         if (cycle.timer > 0)
         {
-            cycle.pattern = inc(cycle.pattern, _patterns.groupPatternCount((patternGroupType)cycle.group)-1);
+            cycle.pattern = inc(cycle.pattern, _patterns.groupPatternCount((patternGroupType)cycle.group));
 
             if (cycle.pattern == 0)
                 cycle.group = inc(cycle.group, patternGroupType::FLAG_GROUP, patternGroupType::EMERGENCY_GROUP+1);
