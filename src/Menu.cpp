@@ -97,8 +97,8 @@ void Menu::begin(uint16_t writeOffset)
         _group = mLastGroup = EEPROM.read(lastGroupOffset());
         _pattern = mLastPattern = EEPROM.read(groupOffset(mLastGroup));
 
-        _serialDebug.infoStr("|-", _patterns->groupName(mLastGroup));
-        _serialDebug.infoStr("|-", _patterns->patternName(mLastGroup, mLastPattern));
+        _serialDebug.infoStr("|-", _patterns.groupName(mLastGroup));
+        _serialDebug.infoStr("|-", _patterns.patternName(mLastGroup, mLastPattern));
 
         // Now get the data for the last pattern.
         uint16_t offset = patternOffset(mLastPattern, mLastGroup);
@@ -111,7 +111,7 @@ void Menu::begin(uint16_t writeOffset)
     else
     {
         _group = mLastGroup = 1;        // Flag group
-        _pattern = mLastPattern = 1;    // FlatTop American Flag
+        _pattern = mLastPattern = 0;    // American Flag
         mLastData.mSpeed = DEFAULT_SPEED;
         mLastData.mColor = DEFAULT_COLOR;
 
@@ -178,7 +178,7 @@ void Menu::writeLastMenu()
 void Menu::writeLastGroup()
 {
     _serialDebug.info("|-writeLastGroup");
-    _serialDebug.infoStr("|--", _patterns->groupName(mLastGroup));
+    _serialDebug.infoStr("|--", _patterns.groupName(mLastGroup));
 
     EEPROM.write(lastGroupOffset(), mLastGroup);
 }
@@ -186,7 +186,7 @@ void Menu::writeLastGroup()
 void Menu::writeLastPattern()
 {
     _serialDebug.info("|-writeLastPattern");
-    _serialDebug.infoStr("|--", _patterns->patternName(mLastGroup, mLastPattern));
+    _serialDebug.infoStr("|--", _patterns.patternName(mLastGroup, mLastPattern));
 
     EEPROM.write(groupOffset(mLastGroup), mLastPattern);
 }
@@ -225,8 +225,8 @@ void Menu::updateLastGroup(bool displayLastPattern)
     mLastGroup = _group;
     mLastPattern = _pattern = (displayLastPattern) ? readLastPattern() : _pattern;
 
-    _serialDebug.infoStr("|--", _patterns->groupName(mLastGroup));
-    _serialDebug.infoStr("|--", _patterns->patternName(mLastGroup, mLastPattern));
+    _serialDebug.infoStr("|--", _patterns.groupName(mLastGroup));
+    _serialDebug.infoStr("|--", _patterns.patternName(mLastGroup, mLastPattern));
 
     readLastPatternData();
 
@@ -243,8 +243,8 @@ void Menu::updateLastPattern()
 
     mLastPattern = _pattern;
 
-    _serialDebug.infoStr("|--", _patterns->groupName(mLastGroup));
-    _serialDebug.infoStr("|--", _patterns->patternName(mLastGroup, mLastPattern));
+    _serialDebug.infoStr("|--", _patterns.groupName(mLastGroup));
+    _serialDebug.infoStr("|--", _patterns.patternName(mLastGroup, mLastPattern));
 
     readLastPatternData();
 

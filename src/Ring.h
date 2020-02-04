@@ -4,7 +4,7 @@
 #include <Arduino.h>
 #include "RingConfig.h"
 
-#define MAX_PIXELS  312     // The total number of pixels supported.
+#define MAX_PIXELS  240     // The total number of pixels supported.
                             // TODO: Need to make sure no buffer overruns
                             // a the MAX size.
 

@@ -198,12 +198,15 @@ public:
     inline void show(unsigned long wait = 0) { mLeds.show(); delay(wait); }
     inline uint32_t rgbColor(uint8_t r, uint8_t g, uint8_t b) { return mLeds.Color(r,g,b); };
     inline void setBrightness(uint8_t brightness) { mLeds.setBrightness(brightness); }
+ 
     inline void setPixelColorAbs(uint16_t absolutePos, uint32_t color) { mLeds.setPixelColor(absolutePos, color); }
     
-    void setPixelColor(DirectionType dir, uint16_t start, uint32_t color, uint16_t length=1);
-    void setPixelColor(DirectionType dir, uint16_t start, uint16_t end, uint32_t color, uint16_t blockSize, uint16_t stripeSize);
-    void setPixelColor(uint16_t relativePos, uint32_t color, uint16_t length=1, DirectionType dir=DirectionType::CW, uint16_t skip=1, uint16_t litPixels=1);
+    void setPixelColor(uint32_t color, uint16_t pos, uint16_t len=1, DirectionType dir=DirectionType::CW, uint16_t skipLen=1, uint16_t pixelLen=1, bool isEnd=false);
+    
+//    void setPixelColor(uint16_t relativePos, uint32_t color, uint16_t length=1, DirectionType dir=DirectionType::CW, uint16_t skip=1, uint16_t litPixels=1);
+    
     void setRingColor(uint32_t color);
+    
     void flash(uint8_t wait, uint32_t color);
 
     bool twinkle() { mTwinkle = !mTwinkle; return mTwinkle; }
@@ -218,17 +221,8 @@ public:
     uint32_t toOppositeColor(uint8_t colorIndex, uint8_t brightness, bool useWhite=false) { 
         return (useWhite && colorIndex > TO_WHITE) ? black() : adjustBrightness(colorWheel(255-colorIndex), brightness); }
     uint32_t toRainbow(uint8_t colorIndex, uint8_t brightness, bool useWhite=false) {
-        switch (map(colorIndex,0,254,0,8)) {
-            case 0: return red(brightness);
-            case 1: return orange(brightness);
-            case 2: return yellow(brightness);
-            case 3: return green(brightness);
-            case 4: return blue(brightness);
-            case 5: return indigo(brightness);
-            case 6: return (useWhite && colorIndex > TO_WHITE) ? white(brightness) : violet(brightness);
-        }
-    }
-    uint32_t rainbowColor(uint8_t colorIndex, uint8_t brightness, bool useWhite=false) {
+        return rainbowColor(map(colorIndex,0,254,0,(useWhite) ? 7 : 6), brightness); }
+    uint32_t rainbowColor(uint8_t colorIndex, uint8_t brightness) {
         switch (colorIndex) {
             default:
             case 0: return red(brightness);
@@ -237,7 +231,20 @@ public:
             case 3: return green(brightness);
             case 4: return blue(brightness);
             case 5: return indigo(brightness);
-            case 6: return (useWhite && colorIndex > TO_WHITE) ? white(brightness) : violet(brightness);
+            case 6: return violet(brightness);
+            case 7: return white(brightness);
+        }
+    }
+    uint32_t toPrimary(uint8_t colorIndex, uint8_t brightness, bool useWhite=false) {
+        return primaryColor(map(colorIndex, 0, 254, 0, (useWhite) ? 3 : 2), brightness);
+    }
+    uint32_t primaryColor(uint8_t colorIndex, uint8_t brightness) {
+        switch (colorIndex) {
+            default:
+            case 0: return red(brightness);
+            case 1: return green(brightness);
+            case 2: return blue(brightness);
+            case 3: return white(brightness);
         }
     }
 
@@ -302,6 +309,7 @@ public:
     void doubleStrobe();
     void tripleStrobe();
     void aircraftStrobe();
+    void landingLights();
 
     // FLAG_GROUP
     void flagGroup();
@@ -341,8 +349,8 @@ public:
     void colorNightRider();
     void colorQuadRider();
     void bouncingBalls();
-    void nightRider(uint8_t color);
-    void quadRider(uint8_t color);
+    void nightRider(uint8_t color, bool useWhite=false);
+    void quadRider(uint8_t color, bool useWhite=false);
 
     // HOLIDAY_GROUP
     void holidayGroup();
@@ -355,7 +363,6 @@ public:
     void independenceLights();
     void saintPatrickLights();
     void thanksGivingLights();
-    void holidayLights(uint32_t colors[], uint16_t count);
 
     // EMERGENCY_GROUP
     void emergencyGroup();
@@ -365,7 +372,6 @@ public:
     void redBlueHalfRingFlash();
     void redBlueHalfRingCrawl();
     void chasingPoliceLights();
-    void chaseLights(uint32_t colors[], uint16_t count);
 
     // CYCLE_GROUP
     void cycleGroup();
@@ -375,9 +381,11 @@ public:
 
     void colorWipe(uint8_t wait, uint8_t brightness, uint8_t color);
     void theaterChase(uint8_t wait, uint8_t brightness, uint8_t color);
+    void stripedLights(uint32_t colors[], uint16_t count);
 
     void ledTest();
     void ledTest(uint8_t wait);
+    void displayInit();
     void displayMode(uint8_t mode, unsigned long wait);
 
 
@@ -401,6 +409,6 @@ public:
     // void displayBitmap(uint16_t lines, uint16_t size, uint8_t* bitmap, uint8_t wait);
 };
 
-extern Patterns *_patterns;
+extern Patterns _patterns;
 
 #endif // PATTERNS_H

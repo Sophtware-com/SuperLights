@@ -68,7 +68,7 @@ uint8_t nextPattern()
 {
     if (_mode == MODE_2_CONTINUOUS)
     {
-        uint8_t p = (_pattern == _patterns->groupPatternCount((patternGroupType)_group)-1) ? 0 : _pattern + 1;
+        uint8_t p = (_pattern == _patterns.groupPatternCount((patternGroupType)_group)-1) ? 0 : _pattern + 1;
 
         // Here we would have normally just looped to the start of this group, but in this mode
         // we skip to the next group so the pattern button moves through ALL patterns. You can
@@ -82,7 +82,7 @@ uint8_t nextPattern()
     if (_mode == MODE_3_FAVORTITE || _mode == MODE_4_LOOPING)
         return (_pattern == 1) ? 0 : 1;
 
-    return (_pattern == _patterns->groupPatternCount((patternGroupType)_group)-1) ? 0 : _pattern + 1;
+    return (_pattern == _patterns.groupPatternCount((patternGroupType)_group)-1) ? 0 : _pattern + 1;
 }
 
 // ISR's
@@ -150,7 +150,6 @@ void patternButtonRisingISR()
     attachInterrupt(digitalPinToInterrupt(PATTERN_BUTTON_PIN), patternButtonFallingISR, FALLING);
 }
 
-
 bool bothButtonsHeld()
 {
     return digitalRead(GROUP_BUTTON_PIN) == LOW && digitalRead(PATTERN_BUTTON_PIN) == LOW;
@@ -198,25 +197,14 @@ void setup()
     else
     {
         digitalWrite(PWR_LED_PIN, HIGH);
-        _buzzer.beep();
     }
 
     _speed.begin();
     _color.begin();
     _bright.begin();
 
-    _patterns = new Patterns(MAX_PIXELS, LED_RING_PIN);
-
     _ringConfig.begin();
     _ring.begin();
-
-    if (!_ringConfig.isInitialized())
-    {
-        _ringConfig.init();
-        _ring.begin();
-    
-        _mode = MODE_1_NORMAL;
-    }
 
     // Set the MODE here.
     if (bothButtonsHeld())
@@ -225,14 +213,10 @@ void setup()
         int speedPos = _speed.knobPosition();
         int colorPos = _color.knobPosition();
 
-        // NOTE: SPEED KNOB IS FLIPPED IN SOFTWARE
-
         if (brightPos == POS_LEFT && speedPos == POS_LEFT && colorPos == POS_LEFT)          // LLL
         {
             _ringConfig.init();
             _ring.begin();
-        
-            _mode = MODE_1_NORMAL;
         }
         else if (brightPos == POS_RIGHT && speedPos == POS_LEFT && colorPos == POS_LEFT)    // RLL
             _mode = MODE_2_CONTINUOUS;
@@ -243,14 +227,6 @@ void setup()
          else if (brightPos == POS_RIGHT && speedPos == POS_RIGHT && colorPos == POS_RIGHT) // RRR
             _mode = MODE_5_STOBES;
      }
-
-    if (_ringConfig.numPixels() < MAX_PIXELS)
-    {
-        delete _patterns;
-        _patterns = new Patterns(_ringConfig.numPixels(), LED_RING_PIN);
-    }
-
-    _patterns->ledTest(255);
 
     _menu.begin();
 
@@ -283,11 +259,12 @@ void setup()
         _menu.lastPattern(_pattern);
     }
 
-    _patterns->displayMode(_mode, 3000);
-    delay(200);
-
-    _serialDebug.infoInt("Mode:", _mode);
-    _serialDebug.info();
+    if (_mode > MODE_1_NORMAL)
+    {
+        _buzzer.beep();
+        _patterns.displayMode(_mode, 3000);
+        delay(200);
+    }
 
     // Attach the button interrupts.
     attachInterrupt(digitalPinToInterrupt(GROUP_BUTTON_PIN), groupButtonFallingISR, FALLING);
@@ -296,9 +273,9 @@ void setup()
     _groupButtonPushedTime = 0;
     _patternButtonPushedTime = 0;
 
-    _patterns->clear(true);
-
     _buzzer.beep();
+    _patterns.ledTest(255);
+    _patterns.clear(true);
 }
 
 void loop()
@@ -320,8 +297,8 @@ void loop()
         _buzzer.beep();
 
         _serialDebug.info();
-        _serialDebug.info(_patterns->groupName(_menu.lastGroup()));
-        _serialDebug.info(_patterns->groupName(_group));
+        _serialDebug.info(_patterns.groupName(_menu.lastGroup()));
+        _serialDebug.info(_patterns.groupName(_group));
 
         // Save the current pattern data for the item we're leaving.
         _menu.writeLastPatternData();
@@ -333,7 +310,7 @@ void loop()
         if (_mode == MODE_1_NORMAL)
             _menu.writeLastGroup();
 
-        _patterns->clear(true);
+        _patterns.clear(true);
     }
 
     if (_menu.patternChanged())
@@ -341,7 +318,7 @@ void loop()
         _buzzer.beep();
 
         _serialDebug.info();
-        _serialDebug.info(_patterns->patternName(_group, _pattern));
+        _serialDebug.info(_patterns.patternName(_group, _pattern));
 
         _menu.writeLastPatternData();
 
@@ -350,8 +327,8 @@ void loop()
         if (_mode == MODE_1_NORMAL)
             _menu.writeLastPattern();
 
-        _patterns->clear(true);
+        _patterns.clear(true);
     }
 
-    _patterns->displayPattern();
+    _patterns.displayPattern();
 }

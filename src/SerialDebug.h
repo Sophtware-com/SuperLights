@@ -5,11 +5,6 @@
 
 //#define USE_SERIAL
 
-// Define the debug level for the entire application.
-// If you're on a Leonardo and NOT using serial, undefine USE_SERIAL in
-// the SerialDebug.h file. Then SerialDebug will output nothing.
-#define DEBUG_LEVEL DebugLevel::info
-
 enum DebugLevel
 {
     none,       // Not used for writing messages.
@@ -21,13 +16,19 @@ enum DebugLevel
     trace       // Contain the most detailed messages.
 };
 
+// Define the debug level for the entire application.
+// If you're on a Leonardo and NOT using serial, undefine USE_SERIAL in
+// the SerialDebug.h file. Then SerialDebug will output nothing.
+#define DEBUG_LEVEL DebugLevel::info
+
 class SerialDebug
 {
 private:
 
+#if defined(USE_SERIAL)
     int mBaud;
     DebugLevel mLevel;
-
+#endif
 
 public:
 
@@ -63,10 +64,12 @@ public:
 
 protected:
 
+#if defined(USE_SERIAL)
     void print(const char* msg = "");
     void printStr(const char* prompt, const char* msg = "");
     void printInt(const char* prompt, int value, const char* unit = "");
     void printFloat(const char* prompt, float value, const char* unit = "");
+#endif
 };
 
 // Make the debug object available to all.
