@@ -143,16 +143,16 @@ const char* Patterns::patternName(uint8_t group, uint8_t pattern)
             "9"
         },
         { // HOLIDAY_GROUP
-            "holidaySparkle",
+            "festiveLights",
             "christmasLights",
+            "hanukkah",
+            "ramadan",
             "valentineLights",
             "saintPatrickLights",
             "easterLights",
             "independenceLights",
             "halloweenLights",
             "thanksGivingLights",
-            "hanukkah",
-            "ramadan"
         },
         { // EMERGENCY_GROUP
             "chasingPoliceLights",
@@ -1131,34 +1131,34 @@ void Patterns::holidayGroup(uint8_t pattern)
     switch (pattern) {
         default:
         case 0:
-            holidaySparkle(); 
+            festiveLights(); 
             break;
         case 1:
             christmasLights();
             break;
         case 2:
-            valentineLights();
+            hanukkahLights();
             break;
         case 3:
-            saintPatrickLights();
+            ramadanLights();
             break;
         case 4:
-            easterLights();
+            valentineLights();
             break;
         case 5:
-            independenceLights();
+            saintPatrickLights();
             break;
         case 6:
-            halloweenLights();
+            easterLights();
             break;
         case 7:
-            thanksGivingLights();
+            independenceLights();
             break;
         case 8:
-            hanukkah();
+            halloweenLights();
             break;
         case 9:
-            ramadan();
+            thanksGivingLights();
             break;
     }
 }
@@ -1267,7 +1267,7 @@ void Patterns::setPixelColor(uint32_t color, uint16_t pos, uint16_t len, Directi
 //     }
 // }
 
-void Patterns::holidaySparkle()
+void Patterns::festiveLights()
 {
     initBrightness();
     initSpeed();
@@ -1293,6 +1293,32 @@ void Patterns::christmasLights()
         blue(knobs.brightness),
         yellow(knobs.brightness),
         red(knobs.brightness)
+    };
+
+    stripedLights(colors, sizeof(colors)/sizeof(uint32_t));
+}
+
+void Patterns::hanukkahLights()
+{
+    initBrightness();
+
+    uint32_t colors[] =
+    {
+        blue(knobs.brightness),
+        white(knobs.brightness/4)
+    };
+
+    stripedLights(colors, sizeof(colors)/sizeof(uint32_t));
+}
+
+void Patterns::ramadanLights()
+{
+    initBrightness();
+
+    uint32_t colors[] =
+    {
+        purple(knobs.brightness),
+        yellow(knobs.brightness)
     };
 
     stripedLights(colors, sizeof(colors)/sizeof(uint32_t));
@@ -1374,32 +1400,6 @@ void Patterns::thanksGivingLights()
     {
         orange(knobs.brightness),
         white(knobs.brightness/4)
-    };
-
-    stripedLights(colors, sizeof(colors)/sizeof(uint32_t));
-}
-
-void Patterns::hanukkah()
-{
-    initBrightness();
-
-    uint32_t colors[] =
-    {
-        blue(knobs.brightness),
-        white(knobs.brightness/4)
-    };
-
-    stripedLights(colors, sizeof(colors)/sizeof(uint32_t));
-}
-
-void Patterns::ramadan()
-{
-    initBrightness();
-
-    uint32_t colors[] =
-    {
-        purple(knobs.brightness),
-        yellow(knobs.brightness)
     };
 
     stripedLights(colors, sizeof(colors)/sizeof(uint32_t));

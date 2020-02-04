@@ -356,16 +356,16 @@ public:
     // HOLIDAY_GROUP
     void holidayGroup();
     void holidayGroup(uint8_t pattern);
-    void holidaySparkle();
+    void festiveLights();
     void christmasLights();
-    void halloweenLights();
-    void easterLights();
+    void hanukkahLights();
+    void ramadanLights();
     void valentineLights();
-    void independenceLights();
     void saintPatrickLights();
+    void easterLights();
+    void independenceLights();
+    void halloweenLights();
     void thanksGivingLights();
-    void hanukkah();
-    void ramadan();
 
     // EMERGENCY_GROUP
     void emergencyGroup();
