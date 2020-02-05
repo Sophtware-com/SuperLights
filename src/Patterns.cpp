@@ -3,6 +3,7 @@
 
 Patterns _patterns(MAX_PIXELS, LED_RING_PIN);
 
+int _cycleDelayMS = 8000;
 
 //
 // GROUP & PATTERN INITI
@@ -23,7 +24,7 @@ const uint8_t Patterns::groupPatternCount(patternGroupType group)
         case STROBE_GROUP:
             return 3;
         case FLAG_GROUP:
-            return 7;
+            return 9;
         case RAINBOW_GROUP:
             return 5;
         case COLOR_GROUP:
@@ -37,6 +38,8 @@ const uint8_t Patterns::groupPatternCount(patternGroupType group)
         case CYCLE_GROUP:
             return 1;
         case CYCLE_ALL_GROUP:
+            return 1;
+        case RANDOM_PATTERN_GROUP:
             return 1;
         default:
             return 0;
@@ -59,6 +62,7 @@ const char* Patterns::groupName(uint8_t group)
         "EMERGENCY_GROUP",
         "CYCLE_GROUP",
         "CYCLE_ALL_GROUP",
+        "RANDOM_PATTERN_GROUP",
     };
 
     strcpy_P(buffer, (char*)&(names[group]));
@@ -97,13 +101,13 @@ const char* Patterns::patternName(uint8_t group, uint8_t pattern)
         { // FLAG_GROUP
             "americanFlag",
             "spainFlag",
+            "italianFlag",
             "mexicanFlag",
             "frenchFlag",
             "canadianFlag",
             "portugalFlag",
             "rebelFlag",
-            "7",
-            "8",
+            "gayPrideFlag",
             "9"
         },
         { // RAINBOW_GROUP
@@ -165,36 +169,17 @@ const char* Patterns::patternName(uint8_t group, uint8_t pattern)
             "7",
             "8",
             "9"
-        },
-        { // CYCLE_GROUP
-            "cycleFavorites",
-            "1",
-            "2",
-            "3",
-            "4",
-            "5",
-            "6",
-            "7",
-            "8",
-            "9"
-        },
-        { // CYCLE_ALL_GROUP
-            "cycleAll",
-            "1",
-            "2",
-            "3",
-            "4",
-            "5",
-            "6",
-            "7",
-            "8",
-            "9"
-        },
-
+        }
     };
 
-    strcpy_P(buffer, (char*)&(names[group][pattern]));
+    if (group == CYCLE_GROUP)
+        return "cycle";
+    else if (group == CYCLE_ALL_GROUP)
+        return "cycleAll";
+    else if (group == RANDOM_PATTERN_GROUP)
+        return "randomPattern"
 
+    strcpy_P(buffer, (char*)&(names[group][pattern]));
     return buffer;
 
 #else
@@ -244,6 +229,9 @@ void Patterns::displayPattern(uint8_t group)
         case CYCLE_ALL_GROUP:
             cycleAllGroup();
             break;
+        case RANDOM_PATTERN_GROUP:
+            randomPatternGroup();
+            break;
     }
 }
 
@@ -277,6 +265,9 @@ void Patterns::displayPattern(uint8_t group, uint8_t pattern)
             break;
         case CYCLE_ALL_GROUP:
             cycleAllGroup();
+            break;
+        case RANDOM_PATTERN_GROUP:
+            randomPatternGroup();
             break;
     }
 }
@@ -380,8 +371,8 @@ void Patterns::landingLights()
     uint16_t size = map(knobs.size, 0, 254, 0, _ring.halfPixels());
     
     clear();
-    setPixelColor(white(knobs.brightness), size, _ring.halfPixels(), CW, 1, 1, true);
-    setPixelColor(white(knobs.brightness), size, _ring.halfPixels(), CCW, 1, 1, true);
+    setPixelColor(white(255), size, _ring.halfPixels(), CW, 1, 1, true);
+    setPixelColor(white(255), size, _ring.halfPixels(), CCW, 1, 1, true);
 
     show(100);
 }
@@ -402,16 +393,20 @@ void Patterns::flagGroup(uint8_t pattern)
             americanFlag(); break;
         case 1: // SPAIN
             spainFlag(); break;
-        case 2: // MEXICAN
+        case 2: // ITAY
+            italianFlag(); break;
+        case 3: // MEXICAN
             mexicanFlag(); break;
-        case 3: // FRENCH
+        case 4: // FRENCH
             frenchFlag(); break;
-        case 4: // CANADIAN
+        case 5: // CANADIAN
             canadianFlag(); break;
-        case 5: // PORTUGAL
+        case 6: // PORTUGAL
             portugalFlag(); break;
-        case 6: // REBEL
+        case 7: // REBEL
             rebelFlag(); break;
+        case 8: // GAY PRIDE
+            gayPrideFlag(); break;
     }
 }
 
@@ -465,6 +460,25 @@ void Patterns::spainFlag()
     setPixelColor(red(knobs.brightness), 0, 12+topOffset, CCW);
     setPixelColor(red(knobs.brightness), _ring.halfPixels()-12, 12);
     setPixelColor(red(knobs.brightness), _ring.halfPixels()-12, 12, CCW);
+
+    show(knobs.speed);
+}
+
+void Patterns::italianFlag()
+{
+    initBrightness();
+    initSpeed();
+
+    uint8_t stripWidth = _ring.halfPixels() / 3;
+    uint8_t extraPixels = _ring.halfPixels() % 3;
+
+    setRingColor(white(knobs.brightness));
+
+    setPixelColor(green(knobs.brightness), 0, stripWidth);
+    setPixelColor(green(knobs.brightness), 0, stripWidth, CCW);
+ 
+    setPixelColor(red(knobs.brightness), _ring.halfPixels()-stripWidth, stripWidth+extraPixels);
+    setPixelColor(red(knobs.brightness), _ring.halfPixels()-stripWidth, stripWidth+extraPixels, CCW);
 
     show(knobs.speed);
 }
@@ -553,6 +567,30 @@ void Patterns::rebelFlag()
     setPixelColor(white(knobs.brightness), _ring.topQuarter()/2-6, _ring.topQuarter()+8, CCW, _ring.topQuarter(), 2);
     setPixelColor(blue(knobs.brightness), _ring.topQuarter()/2-4, _ring.topQuarter()+8, CCW, _ring.topQuarter(), 8);
     setPixelColor(white(knobs.brightness), _ring.topQuarter()/2+4, _ring.topQuarter()+8, CCW, _ring.topQuarter(), 2);
+
+    show(knobs.speed);
+}
+
+void Patterns::gayPrideFlag()
+{
+    initBrightness();
+    initSpeed();
+
+    // STRIPS
+    uint8_t stripWidth = _ring.halfPixels() / 6;
+    uint8_t extraPixels = _ring.halfPixels() % 6;
+
+    for (int i=0; i<2; i++)
+    {
+        DirectionType dir = (i==0) ? CW : CCW;
+
+        setPixelColor(red(knobs.brightness), stripWidth*0, stripWidth, dir);
+        setPixelColor(orange(knobs.brightness), stripWidth*1, stripWidth, dir);
+        setPixelColor(yellow(knobs.brightness), stripWidth*2, stripWidth, dir);
+        setPixelColor(green(knobs.brightness), stripWidth*3, stripWidth, dir);
+        setPixelColor(blue(knobs.brightness), stripWidth*4, stripWidth, dir);
+        setPixelColor(violet(knobs.brightness), stripWidth*5, stripWidth+extraPixels, dir);
+    }
 
     show(knobs.speed);
 }
@@ -674,7 +712,6 @@ void Patterns::gayPride()
     uint32_t colors[] =
     {
         violet(knobs.brightness),
-        indigo(knobs.brightness),
         blue(knobs.brightness),
         green(knobs.brightness),
         yellow(knobs.brightness),
@@ -1511,6 +1548,9 @@ void Patterns::chasingPoliceLights()
 //
 void Patterns::cycleGroup()
 {
+    if (_pattern == 1)
+        cycle.timer = 0;
+
     if (millis() > cycle.timer)
     {
         if (cycle.timer > 0)
@@ -1518,7 +1558,7 @@ void Patterns::cycleGroup()
 
         cycle.pattern = _menu.defaultPattern(cycle.group);
 
-        cycle.timer = millis() + 8000; // 8 seconds
+        cycle.timer = millis() + _cycleDelayMS; // 8 seconds
 
         clear(true);
      }
@@ -1532,6 +1572,9 @@ void Patterns::cycleGroup()
 //
 void Patterns::cycleAllGroup()
 {
+    if (_pattern == 1)
+        cycle.timer = 0;
+
     if (millis() > cycle.timer)
     {
         if (cycle.timer > 0)
@@ -1544,7 +1587,48 @@ void Patterns::cycleAllGroup()
 
         _menu.restorePattern(cycle.group, cycle.pattern);
 
-        cycle.timer = millis() + 8000; // 8 seconds
+        cycle.timer = millis() + _cycleDelayMS; // 8 seconds
+
+        clear(true);
+    }
+
+    displayPattern(cycle.group, cycle.pattern);
+}
+
+
+//
+// RANDOM PATTERNS GROUP
+//
+void Patterns::randomPatternGroup()
+{
+    if (_pattern == 1)
+        cycle.timer = 0;
+
+    if (millis() > cycle.timer)
+    {
+        if (cycle.timer > 0)
+        {
+            // Count our total number of patterns available.
+            uint8_t maxPatterns = 0;
+            for (int g=patternGroupType::FLAG_GROUP; g<=patternGroupType::EMERGENCY_GROUP; g++)
+                maxPatterns = maxPatterns + _patterns.groupPatternCount((patternGroupType)g);
+
+            // Pick one at random. This method is bettern than using 'random' on the
+            // group and pattern individually.
+            cycle.pattern = random(0, maxPatterns);
+            for (int i=patternGroupType::FLAG_GROUP; i<=patternGroupType::EMERGENCY_GROUP; i++)
+            {
+                cycle.group = i;
+                if (cycle.pattern < _patterns.groupPatternCount((patternGroupType)cycle.group))
+                    break;
+                
+                cycle.pattern = cycle.pattern - _patterns.groupPatternCount((patternGroupType)cycle.group);
+            }
+        }
+
+        _menu.restorePattern(cycle.group, cycle.pattern);
+
+        cycle.timer = millis() + _cycleDelayMS; // 8 seconds
 
         clear(true);
     }

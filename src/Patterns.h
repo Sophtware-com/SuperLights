@@ -28,6 +28,7 @@ enum patternGroupType
     EMERGENCY_GROUP,
     CYCLE_GROUP,
     CYCLE_ALL_GROUP,
+    RANDOM_PATTERN_GROUP,
     NUMBER_OF_GROUPS
 };
 
@@ -315,11 +316,13 @@ public:
     void flagGroup(uint8_t pattern);
     void americanFlag();
     void spainFlag();
+    void italianFlag();
     void mexicanFlag();
     void frenchFlag();
     void canadianFlag();
     void portugalFlag();
     void rebelFlag();
+    void gayPrideFlag();
 
     // RAINBOW_GROUP
     void rainbowGroup();
@@ -381,6 +384,9 @@ public:
     // CYCLE_ALL_GROUP
     void cycleAllGroup();
 
+    // RANDOM_PATTERN_GROUP
+    void randomPatternGroup();
+
     void colorWipe(uint8_t wait, uint8_t brightness, uint8_t color);
     void theaterChase(uint8_t wait, uint8_t brightness, uint8_t color);
     void stripedLights(uint32_t colors[], uint16_t count);
@@ -412,5 +418,7 @@ public:
 };
 
 extern Patterns _patterns;
+
+extern int _cycleDelayMS;
 
 #endif // PATTERNS_H
