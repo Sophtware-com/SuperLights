@@ -279,8 +279,8 @@ void setup()
     _menu.begin();
 
     // Force a mode and delay here if needed for testing...
-    _mode = MODE_4_LOOPING;
-    _cycleDelayMS = 3000;
+    //_mode = MODE_4_LOOPING;
+    //_cycleDelayMS = 3000;
 
     // In these modes the pattern button is used to pause and unpause the lights,
     // and we start at the flag group.
