@@ -9,13 +9,59 @@
 #define DEFAULT_SPEED 80
 #define DEFAULT_COLOR 128
 
-
 Menu _menu;
 
 // These get updated by our button interrupts.
 volatile uint8_t _group;
 volatile uint8_t _pattern;
 
+uint8_t _patternDefaults[][4] = 
+{
+    { 0, 0, 0, 255 },
+    { 0, 1, 42, 173 },
+    { 0, 2, 0, 191 },
+    { 1, 0, 157, 0 },
+    { 1, 1, 0, 0 },
+    { 1, 2, 0, 0 },
+    { 1, 3, 0, 0 },
+    { 1, 4, 0, 0 },
+    { 1, 5, 0, 0 },
+    { 1, 6, 0, 0 },
+    { 1, 7, 0, 0 },
+    { 1, 8, 0, 0 },
+    { 2, 0, 0, 0 },
+    { 2, 1, 53, 185 },
+    { 2, 2, 0, 0 },
+    { 2, 3, 55, 210 },
+    { 2, 4, 37, 215 },
+    { 3, 0, 80, 128 },
+    { 3, 1, 0, 113 },
+    { 3, 2, 0, 255 },
+    { 3, 3, 0, 73 },
+    { 3, 4, 0, 48 },
+    { 3, 5, 0, 238 },
+    { 3, 6, 0, 227 },
+    { 4, 0, 0, 34 },
+    { 4, 1, 0, 0 },
+    { 4, 2, 0, 227 },
+    { 4, 3, 0, 227 },
+    { 4, 4, 0, 107 },
+    { 5, 0, 35, 127 },
+    { 5, 1, 38, 107 },
+    { 5, 2, 90, 12 },
+    { 5, 3, 36, 15 },
+    { 5, 4, 36, 0 },
+    { 5, 5, 36, 0 },
+    { 5, 6, 36, 0 },
+    { 5, 7, 36, 0 },
+    { 5, 8, 36, 0 },
+    { 5, 9, 36, 0 },
+    { 6, 0, 38, 9 },
+    { 6, 1, 48, 17 },
+    { 6, 2, 93, 17 },
+    { 6, 3, 0, 17 },
+    { 6, 4, 148, 17 }
+};
 
 // EEPROM MEMORY LAYOUT
 //
@@ -110,26 +156,71 @@ void Menu::begin(uint16_t writeOffset)
     }
     else
     {
-        _group = mLastGroup = 1;        // Flag group
-        _pattern = mLastPattern = 0;    // American Flag
-        mLastData.mSpeed = DEFAULT_SPEED;
-        mLastData.mColor = DEFAULT_COLOR;
+        _group = mLastGroup = _patternDefaults[3][0];       // Flag group
+        _pattern = mLastPattern = _patternDefaults[3][1];   // American Flag
+        mLastData.mSpeed = _patternDefaults[3][2];
+        mLastData.mColor = _patternDefaults[3][3];
 
         EEPROM.write(lastGroupOffset(), mLastGroup);
 
-        for (int i=0; i<MAX_GROUPS; i++)
-        {
-            EEPROM.write(groupOffset(i), mLastPattern);
-            for (int j=0; j<MAX_PATTERNS; j++)
-            {
-                uint16_t offset = patternOffset(j, i);
-                EEPROM.write(patternSpeedOffset(offset), mLastData.mSpeed);
-                EEPROM.write(patternColorOffset(offset), mLastData.mColor);
-            }
-        }
+        for (int group=0; group<=patternGroupType::EMERGENCY_GROUP; group++)
+            EEPROM.write(groupOffset(group), mLastPattern);
+
+        for (uint8_t i=0; i<sizeof(_patternDefaults)/sizeof(_patternDefaults[0]); i++)
+            writePatternSpeedColor(_patternDefaults[i][0], _patternDefaults[i][1], _patternDefaults[i][2], _patternDefaults[i][3]);
 
         EEPROM.write(mWriteOffset, MAGIC_NUMBER);
     }
+}
+
+void Menu::dumpPatterns()
+{
+    Serial.begin(9600);
+
+    while (!Serial) ;
+
+    Serial.println("Group,Pattern,Speed,Color");
+
+    for (int group=0; group<=patternGroupType::EMERGENCY_GROUP; group++)
+    {
+        for (int pattern=0; pattern<_patterns.groupPatternCount((patternGroupType)group); pattern++)
+        {
+            uint16_t offset = patternOffset(pattern, group);
+
+            Serial.print("{ ");
+
+            Serial.print(group);
+            Serial.print(", ");
+            Serial.print(pattern);
+            Serial.print(", ");
+            Serial.print(EEPROM.read(patternSpeedOffset(offset)));
+            Serial.print(", ");
+            Serial.print(EEPROM.read(patternColorOffset(offset)));
+
+            Serial.println(" },");
+        }
+    }
+}
+
+void Menu::print(const char* prompt, int value)
+{
+    Serial.print(prompt);
+    Serial.print(": ");
+    Serial.println(value);
+}
+
+void Menu::writeGroupSpeedColor(uint8_t group, uint8_t speed, uint8_t color)
+{
+    for (int pattern=0; pattern<_patterns.groupPatternCount((patternGroupType)group); pattern++)
+        writePatternSpeedColor(group, pattern, speed, color);
+}
+
+void Menu::writePatternSpeedColor(uint8_t group, uint8_t pattern, uint8_t speed, uint8_t color)
+{
+    uint16_t offset = patternOffset(pattern, group);
+
+    EEPROM.write(patternSpeedOffset(offset), speed);
+    EEPROM.write(patternColorOffset(offset), color);
 }
 
 void Menu::restorePattern(uint8_t group, uint8_t pattern)
@@ -138,8 +229,8 @@ void Menu::restorePattern(uint8_t group, uint8_t pattern)
     mLastData.mSpeed = EEPROM.read(patternSpeedOffset(offset));
     mLastData.mColor = EEPROM.read(patternColorOffset(offset));
 
-    _speed.savedState();
-    _color.saveState();
+    _speed.saveSensorPosition();
+    _color.saveSensorPosition();
 }
 
 uint8_t Menu::defaultPattern(uint8_t group)
@@ -150,8 +241,8 @@ uint8_t Menu::defaultPattern(uint8_t group)
     mLastData.mSpeed = EEPROM.read(patternSpeedOffset(offset));
     mLastData.mColor = EEPROM.read(patternColorOffset(offset));
 
-    _speed.savedState();
-    _color.saveState();
+    _speed.saveSensorPosition();
+    _color.saveSensorPosition();
 
     return pattern;
 }
@@ -195,25 +286,15 @@ void Menu::writeLastPatternData()
 {
     _serialDebug.info("|-writeLastPatternData");
 
-    if (_speed.stateChanged() || _color.stateChanged())
+    if (mLastGroup < (uint8_t)patternGroupType::CYCLE_GROUP)
     {
-        if (mLastGroup != (uint8_t)patternGroupType::CYCLE_GROUP)
-        {
-            uint16_t offset = patternOffset(mLastPattern, mLastGroup);
-            EEPROM.write(patternSpeedOffset(offset), _speed.value());
-            EEPROM.write(patternColorOffset(offset), _color.value());
+        uint16_t offset = patternOffset(mLastPattern, mLastGroup);
 
-            _serialDebug.infoInt("|--speed", _speed.value());
-            _serialDebug.infoInt("|--color", _color.value());
-        }
-        else
-        {
-            _serialDebug.info("|--skipped cycleGroup.");
-        }
-    }
-    else
-    {
-        _serialDebug.info("|--skipped.");
+        if (_speed.sensorPositionChanged())
+            EEPROM.write(patternSpeedOffset(offset), _speed.value());
+
+        if (_color.sensorPositionChanged())
+            EEPROM.write(patternColorOffset(offset), _color.value());
     }
 }
 
@@ -230,11 +311,11 @@ void Menu::updateLastGroup(bool displayLastPattern)
 
     readLastPatternData();
 
-    _speed.saveState();
-    _color.saveState();
+    _speed.saveSensorPosition();
+    _color.saveSensorPosition();
 
-    _serialDebug.infoInt("|--savedSpeed", _speed.savedState());
-    _serialDebug.infoInt("|--savedColor", _color.savedState());
+    _serialDebug.infoInt("|--savedSpeed", _speed.savedSensorPosition());
+    _serialDebug.infoInt("|--savedColor", _color.savedSensorPosition());
 }
 
 void Menu::updateLastPattern()
@@ -248,11 +329,11 @@ void Menu::updateLastPattern()
 
     readLastPatternData();
 
-    _speed.saveState();
-    _color.saveState();
+    _speed.saveSensorPosition();
+    _color.saveSensorPosition();
 
-    _serialDebug.infoInt("|--savedSpeed", _speed.savedState());
-    _serialDebug.infoInt("|--savedColor", _color.savedState());
+    _serialDebug.infoInt("|--savedSpeed", _speed.savedSensorPosition());
+    _serialDebug.infoInt("|--savedColor", _color.savedSensorPosition());
 }
 
 
@@ -283,7 +364,7 @@ Pattern Menu::readLastPatternData()
 
 uint8_t Menu::currentSpeed()
 {
-    if (_speed.stateChanged())
+    if (_speed.sensorPositionChanged())
     {
         _serialDebug.infoInt("Speed", _speed.value());
         return _speed.value();
@@ -294,7 +375,7 @@ uint8_t Menu::currentSpeed()
 
 uint8_t Menu::currentColor()
 {
-    if (_color.stateChanged())
+    if (_color.sensorPositionChanged())
     {
         _serialDebug.infoInt("Color", _color.value());
         return _color.value();
@@ -303,9 +384,9 @@ uint8_t Menu::currentColor()
     return mLastData.mColor;
 }
 
-uint8_t Menu::currentBrightness(uint8_t max)
+uint8_t Menu::currentBrightness()
 {
-    return _bright.read(max);
+    return _bright.read();
 }
 
 uint8_t Menu::lastBrightness()

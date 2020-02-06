@@ -5,13 +5,14 @@
 #include <Adafruit_NeoPixel.h>
 
 #include "SerialDebug.h"
+#include "SensorRead.h"
 #include "Menu.h"
 #include "Ring.h"
 
 #define LED_RING_PIN 7
 #define LED_STAR_PIN 4
 
-#define TO_WHITE 253 // toColor/toRainbow/rainbowColor functions will change to white after this color.
+#define TO_WHITE 254 // toColor/toRainbow/rainbowColor functions will change to white after this color.
 
 #define CYCLE_DELAY_SECONDS 8 // How long each pattern displays in a cycle mode.
 
@@ -202,6 +203,7 @@ public:
  
     inline void setPixelColorAbs(uint16_t absolutePos, uint32_t color) { mLeds.setPixelColor(absolutePos, color); }
     
+    void setPixelColorAbs(uint32_t color, uint16_t pos, uint16_t len=1, uint16_t skipLen=1, uint16_t pixelLen=1, bool isEnd=false);
     void setPixelColor(uint32_t color, uint16_t pos, uint16_t len=1, DirectionType dir=DirectionType::CW, uint16_t skipLen=1, uint16_t pixelLen=1, bool isEnd=false);
     
 //    void setPixelColor(uint16_t relativePos, uint32_t color, uint16_t length=1, DirectionType dir=DirectionType::CW, uint16_t skip=1, uint16_t litPixels=1);
@@ -222,7 +224,7 @@ public:
     uint32_t toOppositeColor(uint8_t colorIndex, uint8_t brightness, bool useWhite=false) { 
         return (useWhite && colorIndex > TO_WHITE) ? black() : adjustBrightness(colorWheel(255-colorIndex), brightness); }
     uint32_t toRainbow(uint8_t colorIndex, uint8_t brightness, bool useWhite=false) {
-        return rainbowColor(map(colorIndex,0,254,0,(useWhite) ? 7 : 6), brightness); }
+        return rainbowColor(map(colorIndex,0,_color.maxValue(),0,(useWhite) ? 7 : 6), brightness); }
     uint32_t rainbowColor(uint8_t colorIndex, uint8_t brightness) {
         switch (colorIndex) {
             default:
@@ -237,7 +239,7 @@ public:
         }
     }
     uint32_t toPrimary(uint8_t colorIndex, uint8_t brightness, bool useWhite=false) {
-        return primaryColor(map(colorIndex, 0, 254, 0, (useWhite) ? 3 : 2), brightness);
+        return primaryColor(map(colorIndex, 0, _color.maxValue(), 0, (useWhite) ? 3 : 2), brightness);
     }
     uint32_t primaryColor(uint8_t colorIndex, uint8_t brightness) {
         switch (colorIndex) {

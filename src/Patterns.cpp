@@ -1,6 +1,5 @@
 #include "Patterns.h"
 
-
 Patterns _patterns(MAX_PIXELS, LED_RING_PIN);
 
 int _cycleDelayMS = 8000;
@@ -311,7 +310,7 @@ void Patterns::doubleStrobe()
 
     if (mFrame.currentFrame < 3)
     {
-        uint16_t len = map(knobs.size, 0, 254, 1, _ring.halfPixels());
+        uint16_t len = map(knobs.size, 0, _speed.maxValue(), 1, _ring.halfPixels());
 
         setPixelColor(white(), 0, len);
         setPixelColor(white(), 0, len, CCW);
@@ -344,7 +343,7 @@ void Patterns::aircraftStrobe()
     if (mFrame.currentFrame < 3)
     {
         uint16_t topOffset = _ring.bottomOffset();
-        uint16_t size = map(knobs.size, 0, 254, 6, 54);
+        uint16_t size = map(knobs.size, 0, _speed.maxValue(), 6, 54);
     
         setPixelColor(white(), 0, size+topOffset);
         setPixelColor(white(), 0, size+topOffset, CCW);
@@ -368,7 +367,7 @@ void Patterns::landingLights()
     initBrightness();
     initSize();
 
-    uint16_t size = map(knobs.size, 0, 254, 0, _ring.halfPixels());
+    uint16_t size = map(knobs.size, 0, _speed.maxValue(), 0, _ring.halfPixels());
     
     clear();
     setPixelColor(white(255), size, _ring.halfPixels(), CW, 1, 1, true);
@@ -1186,7 +1185,7 @@ void Patterns::stripedLights(uint32_t colors[], uint16_t colorCount)
     if (knobs.size > 0)
     {
         // How big does the user want their color segments?
-        uint8_t blockSize = map(knobs.size, 1, 254, colorCount, 60) * 2;
+        uint8_t blockSize = map(knobs.size, 1, _speed.maxValue(), colorCount, 60) * 2;
 
         // Make sure we can fit our colors into the segment.        
         blockSize = blockSize - (blockSize % colorCount);
@@ -1257,6 +1256,20 @@ void Patterns::setPixelColor(uint32_t color, uint16_t pos, uint16_t len, Directi
     }
 }
 
+void Patterns::setPixelColorAbs(uint32_t color, uint16_t pos, uint16_t len, uint16_t skipLen, uint16_t pixelLen, bool isEnd)
+{
+    uint16_t end = (isEnd) ? len : pos+len;
+
+    for (uint16_t i=pos; i<end; i+=skipLen)
+    {
+        for (uint16_t j=i; j<min(i+pixelLen, end); j++)
+        {
+            setPixelColorAbs(j, color);
+        }
+    }
+}
+
+
 // void Patterns::setPixelColor(uint16_t startPosition, uint32_t color, uint16_t length, DirectionType dir, uint16_t skip, uint16_t litPixels)
 // {
 //     // Truncate at the end of our pixel strip if needed.
@@ -1280,7 +1293,7 @@ void Patterns::festiveLights()
     initColor();
 
     // Turning the color/size knob will control how many 'black' pixels are included.
-    uint8_t color = map(knobs.color, 0, 254, 1, 100);
+    uint8_t color = map(knobs.color, 0, _speed.maxValue(), 1, 100);
 
     for (uint16_t i=0; i<_ring.numPixels(); i++)
         setPixelColor((uint32_t)(random(0, 100) > color ? toColor(random(1, 255), knobs.brightness) : 0), i);
@@ -1479,7 +1492,7 @@ void Patterns::redBlueHalfRingCrawl()
     if (isFirstFrame())
         mFrame.position = 0;
 
-    uint8_t size = map(knobs.size, 0, 254, 12, 60);
+    uint8_t size = map(knobs.size, 0, _speed.maxValue(), 12, 60);
 
     clear();
 
@@ -1671,17 +1684,16 @@ void Patterns::displayInit()
 void Patterns::displayMode(uint8_t mode, unsigned long wait)
 {
     // Flash the mode to get attention.
-    setPixelColor(red(), 0, 4*mode, DirectionType::CW, 4, 2);
-    show(50);
-    clear();
-    show(50);
-    setPixelColor(red(), 0, 4*mode, DirectionType::CW, 4, 2);
-    show(50);
-    clear();
-    show(50);
+    for (int i=0; i<3; i++)
+    {
+        setPixelColorAbs(red(), 0, 4*mode, 4, 2);
+        show(50);
+        clear();
+        show(50);
+    }
 
     // Now just display the mode solid.
-    setPixelColor(red(), 0, 4*mode, DirectionType::CW, 4, 2);
+    setPixelColorAbs(red(), 0, 4*mode, 4, 2);
     show(wait);
     clear();
 }

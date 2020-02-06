@@ -75,7 +75,7 @@ void RingConfig::init()
 
     // Initialize the numPixels variable...
     while (bothButtonsOpen())
-        mNumPixels = _patterns.initializeNumPixels(_bright.read());
+        mNumPixels = _patterns.initializeNumPixels(min(_bright.read(),MAX_PIXELS));
 
     _buzzer.beep();
     delay(500);

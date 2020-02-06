@@ -1,5 +1,6 @@
 #include <Arduino.h>
 #include <avr/sleep.h>
+#include <EEPROM.h>
 
 #include "Global.h"
 #include "RingConfig.h"
@@ -30,16 +31,18 @@ volatile unsigned long _groupButtonPushedTime = 0;
 volatile bool _patternButtonBeep = false;
 volatile unsigned long _patternButtonPushedTime = 0;
 
-// MODES
-#define MODE_0_INIT       0
-#define MODE_1_NORMAL     1
-#define MODE_2_CONTINUOUS 2
-#define MODE_3_FAVORTITE  3
-#define MODE_4_LOOPING    4
-#define MODE_5_STOBES     5
-#define MODE_6_RANDOM     6
+// MODES, ?=not used, X=value, lowercase=no push
+#define MODE_NORMAL       0 // pg-???
+#define MODE_INITIALIZE   1 // PG-LLL
+#define MODE_RANDOM       2 // Pg-?X?, where X is between 3 and 15 seconds
+#define MODE_FAVORITES    3 // pG-?X?, where X is between 3 and 15 seconds
+#define MODE_CYCLE_LONG   4 // PG-RRR
+#define MODE_CYCLE_SHORT  5 // PG-RRL
+#define MODE_CONTINUOUS   6 // PG-RLR
+#define MODE_STROBES      7 // PG-LRL
 
-uint8_t _mode = MODE_1_NORMAL;
+uint8_t _mode = MODE_NORMAL;
+
 
 // PROTOTYPES
 void groupButtonRisingISR();
@@ -51,10 +54,10 @@ uint8_t nextGroup()
 {
     static bool paused = false;
 
-    if (_mode == MODE_2_CONTINUOUS)
+    if (_mode == MODE_CONTINUOUS)
         _pattern = 0;
 
-    if (_mode == MODE_3_FAVORTITE)
+    if (_mode == MODE_FAVORITES )
     {
         if (_group == patternGroupType::CYCLE_GROUP)
         {
@@ -66,7 +69,7 @@ uint8_t nextGroup()
         return (uint8_t)patternGroupType::CYCLE_GROUP;
     }
 
-    if (_mode == MODE_4_LOOPING)
+    if (_mode == MODE_CYCLE_LONG || _mode == MODE_CYCLE_SHORT)
     {
         if (_group == patternGroupType::CYCLE_ALL_GROUP)
         {
@@ -78,10 +81,10 @@ uint8_t nextGroup()
         return (uint8_t)patternGroupType::CYCLE_ALL_GROUP;
     }
 
-    if (_mode == MODE_5_STOBES)
+    if (_mode == MODE_STROBES)
         return (uint8_t)(patternGroupType::STROBE_GROUP);
 
-    if (_mode == MODE_6_RANDOM)
+    if (_mode == MODE_RANDOM)
     {
         if (_group == patternGroupType::RANDOM_PATTERN_GROUP)
         {
@@ -98,7 +101,7 @@ uint8_t nextGroup()
 
 uint8_t nextPattern()
 {
-    if (_mode == MODE_2_CONTINUOUS)
+    if (_mode == MODE_CONTINUOUS)
     {
         uint8_t p = (_pattern == _patterns.groupPatternCount((patternGroupType)_group)-1) ? 0 : _pattern + 1;
 
@@ -111,7 +114,7 @@ uint8_t nextPattern()
         return p;
     }
 
-    if (_mode == MODE_3_FAVORTITE || _mode == MODE_4_LOOPING || _mode == MODE_6_RANDOM)
+    if (_mode == MODE_FAVORITES  || _mode == MODE_CYCLE_LONG || _mode == MODE_RANDOM)
         return (_pattern == 1) ? 0 : 1;
 
     return (_pattern == _patterns.groupPatternCount((patternGroupType)_group)-1) ? 0 : _pattern + 1;
@@ -143,7 +146,7 @@ void groupButtonRisingISR()
             _group = 0;
 
             // Also loop the patterns back to the beginning when resetting group.
-            if (_mode == MODE_2_CONTINUOUS)
+            if (_mode == MODE_CONTINUOUS)
                 _pattern = 0;
         }
 
@@ -235,92 +238,97 @@ void setup()
     _color.begin();
     _bright.begin();
 
+    // Enable these lines to debug init issues.
+    for (uint16_t i=0; i<EEPROM.length(); i++) 
+        EEPROM.write(i, 0);
+
     _ringConfig.begin();
     _ring.begin();
+
+    int brightPos = _bright.knobPosition();
+    int speedPos = _speed.knobPosition();
+    int colorPos = _color.knobPosition();
 
     // Set the MODE here.
     if (bothButtonsHeld())
     {
-        int brightPos = _bright.knobPosition();
-        int speedPos = _speed.knobPosition();
-        int colorPos = _color.knobPosition();
-
-        if (brightPos == POS_LEFT && speedPos == POS_LEFT && colorPos == POS_LEFT)          // LLL
+        if (brightPos == POS_LEFT && speedPos == POS_LEFT && colorPos == POS_LEFT)         // PG-LLL
         {
             _ringConfig.init();
             _ring.begin();
         }
-        else if (brightPos == POS_RIGHT && speedPos == POS_LEFT && colorPos == POS_LEFT)    // RLL
-            _mode = MODE_2_CONTINUOUS;
-        else if (brightPos == POS_RIGHT && speedPos == POS_LEFT && colorPos == POS_RIGHT)  // RLR
+        else if (brightPos == POS_RIGHT && speedPos == POS_LEFT && colorPos == POS_RIGHT)  // PG-RLR
         {
-            _mode = MODE_4_LOOPING;
+            _mode = MODE_CONTINUOUS;
+        }
+        else if (brightPos == POS_RIGHT && speedPos == POS_LEFT && colorPos == POS_RIGHT)  // PG-RRR
+        {
+            _mode = MODE_CYCLE_LONG;
             _cycleDelayMS = 8000;
         }
-        else if (brightPos == POS_RIGHT && speedPos == POS_RIGHT && colorPos == POS_LEFT)  // RRL
+        else if (brightPos == POS_RIGHT && speedPos == POS_RIGHT && colorPos == POS_LEFT)  // PG-RRL
         {
-            _mode = MODE_4_LOOPING;
+            _mode = MODE_CYCLE_SHORT;
             _cycleDelayMS = 3000;
         }
-        else if (brightPos == POS_RIGHT && speedPos == POS_RIGHT && colorPos == POS_RIGHT) // RRR
-            _mode = MODE_5_STOBES;
+        else if (brightPos == POS_RIGHT && speedPos == POS_RIGHT && colorPos == POS_RIGHT) // PG-LRL
+        {
+            _mode = MODE_STROBES;
+        }
     }
-    else if (digitalRead(GROUP_BUTTON_PIN) == LOW)
+    else if (digitalRead(GROUP_BUTTON_PIN) == LOW)    // G
     {
-        _mode = MODE_3_FAVORTITE;
-        _cycleDelayMS = 8000;
+        _mode = MODE_FAVORITES ;
+        _cycleDelayMS = map(speedPos, 0, _speed.maxValue(), 3, 15) * 1000;
     } 
-    else if (digitalRead(PATTERN_BUTTON_PIN) == LOW)
+    else if (digitalRead(PATTERN_BUTTON_PIN) == LOW) // P
     {
-        _mode = MODE_6_RANDOM;
-        _cycleDelayMS = 8000;
+        _mode = MODE_RANDOM;
+        _cycleDelayMS = map(speedPos, 0, _speed.maxValue(), 3, 15) * 1000;
     }
 
     _menu.begin();
 
     // Force a mode and delay here if needed for testing...
-    //_mode = MODE_4_LOOPING;
+    //_mode = MODE_CYCLE_LONG;
     //_cycleDelayMS = 3000;
 
     // In these modes the pattern button is used to pause and unpause the lights,
     // and we start at the flag group.
-    if (_mode == MODE_3_FAVORTITE)
-    {
-        _group = (uint8_t)patternGroupType::CYCLE_GROUP;
-        _pattern = 0;
-
-        _menu.lastGroup(_group);
-        _menu.lastPattern(_pattern);
-    }
-
-    if (_mode == MODE_4_LOOPING)
-    {
-        _group = (uint8_t)patternGroupType::CYCLE_ALL_GROUP;
-        _pattern = 0;
-
-        _menu.lastGroup(_group);
-        _menu.lastPattern(_pattern);
-    }
-
-    if (_mode == MODE_6_RANDOM)
+    if (_mode == MODE_RANDOM)
     {
         _group = (uint8_t)patternGroupType::RANDOM_PATTERN_GROUP;
         _pattern = 0;
 
-        _menu.lastGroup(_group);
-        _menu.lastPattern(_pattern);
+        _menu.restorePattern(_group, _pattern);
     }
 
-    if (_mode == MODE_5_STOBES)
+    if (_mode == MODE_FAVORITES )
+    {
+        _group = (uint8_t)patternGroupType::CYCLE_GROUP;
+        _pattern = 0;
+
+        _menu.restorePattern(_group, _pattern);
+    }
+
+    if (_mode == MODE_CYCLE_LONG || _mode == MODE_CYCLE_SHORT)
+    {
+        _group = (uint8_t)patternGroupType::CYCLE_ALL_GROUP;
+        _pattern = 0;
+
+        _menu.restorePattern(_group, _pattern);
+    }
+
+    if (_mode == MODE_STROBES)
     {
         _group = (uint8_t)patternGroupType::STROBE_GROUP;
         _pattern = _menu.defaultPattern(_group);
 
-        _menu.lastGroup(_group);
-        _menu.lastPattern(_pattern);
+        _menu.restorePattern(_group, _pattern);
     }
 
-    if (_mode > MODE_1_NORMAL)
+    // Display the MODE on the ring as a series of dashes.
+    if (_mode > MODE_NORMAL)
     {
         _buzzer.beep();
         _patterns.displayMode(_mode, 3000);
@@ -345,6 +353,8 @@ void loop()
     {
         _groupButtonBeep = true;
         _buzzer.beep();
+
+        _menu.dumpPatterns();
     }
 
     if (_patternButtonPushedTime != 0 && !_patternButtonBeep && millis() - _patternButtonPushedTime > BUTTON_LONG_PUSH)
@@ -365,10 +375,10 @@ void loop()
         _menu.writeLastPatternData();
 
         // Update the 'Last' vars with the new values.
-        _menu.updateLastGroup(_mode == MODE_2_CONTINUOUS || _mode == MODE_5_STOBES);
+        _menu.updateLastGroup(_mode == MODE_NORMAL || _mode == MODE_CONTINUOUS || _mode == MODE_STROBES);
 
         // Only update the last group when in NORMAL mode.
-        if (_mode == MODE_1_NORMAL)
+        if (_mode == MODE_NORMAL)
             _menu.writeLastGroup();
 
         _patterns.clear(true);
@@ -385,7 +395,8 @@ void loop()
 
         _menu.updateLastPattern();
 
-        if (_mode == MODE_1_NORMAL)
+        // Only save the last pattern when in normal mode.
+        if (_mode == MODE_NORMAL)
             _menu.writeLastPattern();
 
         _patterns.clear(true);

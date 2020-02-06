@@ -19,6 +19,11 @@ private:
 public:
     void begin(uint16_t writeOffset = 16);
     bool isInitialized();
+    void writeGroupSpeedColor(uint8_t group, uint8_t speed, uint8_t color);
+    void writePatternSpeedColor(uint8_t group, uint8_t pattern, uint8_t speed, uint8_t color);
+
+    void dumpPatterns();
+    void print(const char* prompt, int value);
 
     uint8_t lastGroup() { return mLastGroup; }
     void lastGroup(uint8_t group) { mLastGroup = group; }
@@ -45,7 +50,7 @@ public:
 
     uint8_t currentSpeed();
     uint8_t currentColor();
-    uint8_t currentBrightness(uint8_t max=255);
+    uint8_t currentBrightness();
     uint8_t lastBrightness();
 
 protected:

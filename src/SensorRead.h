@@ -28,7 +28,7 @@ private:
     int mValue;
 
     bool mFlip;
-    uint16_t mFlipper;
+    uint16_t mMaxValue;
 
     uint16_t mLastRead;
     uint16_t mSavedRead;
@@ -43,7 +43,7 @@ public:
         mBitShift = bitShift;
 
         mFlip = flip;
-        mFlipper = (0x3FF >> mBitShift);
+        mMaxValue = (0x3FF >> mBitShift);
 
         // Allocate the samples array.
         mSamples = new uint16_t[mNumSamples];
@@ -70,8 +70,10 @@ public:
 
     uint16_t Flip(uint16_t value)
     {
-        return (mFlip) ? mFlipper - value : value;
+        return (mFlip) ? mMaxValue - value : value;
     }
+
+    inline uint16_t maxValue() { return mMaxValue; }
 
     uint16_t average()
     {
@@ -79,16 +81,21 @@ public:
         // number. This helps prevent a reading from vacillating between
         // two numbers. Example: if you had 127.7 and 128.1, then just dividing
         // would always go between 127 and 128. This forces those two to round
-        // to 127, and will eliminate I lot of pot jitter.
+        // to 127, and will eliminate a lot of pot jitter.
+
+        // Can't remember what I was doing here with the OR. The two expressions
+        // either round down (left side) or round up (right side). This code is
+        // ALWAYS calling the LEFT side! The condition is always FALSE.
         return ((mSum < 0) ^ (mNumSamples < 0)) ? ((mSum - mNumSamples/2)/mNumSamples) : ((mSum + mNumSamples/2)/mNumSamples);
     }
 
-    uint16_t read(uint16_t maxValue = 0xFFFF)
+    uint16_t read()
     {
         // Store the last read value. We use averaging here to catch those
         // outliers that jump between two values. This will, however, mean
         // that the maximum values you can read decreases by one. So for
-        // a BYTE value (8 bits) the range is 0 to 254, not 255.
+        // a BYTE value (8 bits) the range is 0 to 254, not 255. Although,
+        // currently this is NOT true.
         mLastRead = (mLastRead + average()) / 2;
         mIndex = (mIndex + 1 >= mNumSamples) ? 0 : mIndex + 1;
 
@@ -100,7 +107,7 @@ public:
 
         mValue = (mLastRead + average()) / 2;
 
-        return min(((uint16_t)mValue), maxValue);
+        return min(((uint16_t)mValue), mMaxValue);
     }
 
     int knobPosition()
@@ -112,7 +119,7 @@ public:
         pos = POS_CENTER;
         if (value < POS_RANGE)
             pos = POS_RIGHT;
-        else if (value > 254-POS_RANGE)
+        else if (value > mMaxValue-POS_RANGE)
             pos = POS_LEFT;
 
         return pos;
@@ -124,27 +131,39 @@ public:
         return mLastRead;
     }
 
-    uint16_t saveState()
+    uint16_t saveSensorPosition()
     {
+        // This just saves the current position of the knob. We use this so
+        // we know if the user made an adjustment from the default loaded from
+        // EEPROM. 
+
+        // If the POT has too much jitter, this can trigger a false change in
+        // knob position.
         mSavedRead = read();
         return mSavedRead;
     }
 
-    bool stateChanged()
+    bool sensorPositionChanged()
     {
-        if (mSavedRead != read())
+        read(); // Set mValue. We always need to call this for Menu::current<> to work.
+        
+        // If the new value is within '1' of the old, don't count as changed yet.
+        if (mSavedRead > mMaxValue || (uint16_t)mValue < min(mSavedRead-1, 0) || (uint16_t)mValue > max(mSavedRead+1,mMaxValue))
         {
-            // Once the state changes, keep it that way.
-            mSavedRead = 255;
+            // Once the sensor position has been changed by the user,
+            // we set this to a value above the sensor position so this
+            // method will always return true until reset.
+            mSavedRead = mMaxValue + 1;
             return true;
         }
 
         return false;
     }
 
-    uint16_t savedState()
+    uint16_t savedSensorPosition()
     {
-        return mSavedRead;
+        // What was the sensor position we saved.
+        return min(mSavedRead, mMaxValue);
     }
 
     uint16_t value()
