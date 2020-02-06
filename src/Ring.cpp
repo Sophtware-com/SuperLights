@@ -30,17 +30,17 @@ uint16_t Ring::pixel(uint16_t pos, DirectionType dir)
 
 // Can pass in a relative or absolute pixel and the mehtod will return
 // the pixel to the LEFT (CCW) or RIGHT (CW).
-uint16_t Ring::adjacentPixel(uint16_t pos, DirectionType dir)
-{
-    if (dir == CW)
-        return ((pos+1) == numPixels()) ? 0 : pos + 1;
-    else
-        return (pos == 0) ? numPixels()-1 : pos - 1;
-}
+// uint16_t Ring::adjacentPixel(uint16_t pos, DirectionType dir)
+// {
+//     if (dir == CW)
+//         return ((pos+1) == numPixels()) ? 0 : pos + 1;
+//     else
+//         return (pos == 0) ? numPixels()-1 : pos - 1;
+// }
 
 // Can pass in a relative or absolute pixel and the method will Return
 // the pixel on the opposite side of the cage ring.
-uint16_t Ring::oppositePixel(uint16_t pos)
-{
-    return (pos + halfPixels()) % numPixels();
-}
+// uint16_t Ring::oppositePixel(uint16_t pos)
+// {
+//     return (pos + halfPixels()) % numPixels();
+// }

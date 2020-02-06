@@ -39,6 +39,14 @@ private:
     uint16_t mQuarterPixels;
 
 public:
+    Ring() 
+    {
+        mNumPixels = MAX_PIXELS;
+        mLastPixel = MAX_PIXELS - 1;
+        mHalfPixels = MAX_PIXELS / 2;
+        mQuarterPixels = MAX_PIXELS / 4;
+    }
+
     void begin()
     {
         mNumPixels = _ringConfig.numPixels();
@@ -112,11 +120,11 @@ public:
 
     // Can pass in a relative or absolute pixel and the mehtod will return
     // the pixel to the LEFT (CCW) or RIGHT (CW).
-    uint16_t adjacentPixel(uint16_t pos, DirectionType dir = DirectionType::CW);
+    //uint16_t adjacentPixel(uint16_t pos, DirectionType dir = DirectionType::CW);
 
     // Can pass in a relative or absolute pixel and the method will Return
     // the pixel on the opposite side of the cage ring.
-    uint16_t oppositePixel(uint16_t pos);
+    //uint16_t oppositePixel(uint16_t pos);
 };
 
 extern Ring _ring;

@@ -15,7 +15,7 @@ Menu _menu;
 volatile uint8_t _group;
 volatile uint8_t _pattern;
 
-uint8_t _patternDefaults[][4] = 
+const uint8_t _patternDefaults[][4] PROGMEM = 
 {
     { 0, 0, 0, 255 },
     { 0, 1, 42, 173 },
@@ -137,40 +137,39 @@ void Menu::begin(uint16_t writeOffset)
     // Check for the magic number. This lets us know we've initialized.
     if (isInitialized())
     {
-        _serialDebug.info("Restored Last Group/Pattern");
-
         // Read in the last Group used, and the last Pattern in that group.
         _group = mLastGroup = EEPROM.read(lastGroupOffset());
         _pattern = mLastPattern = EEPROM.read(groupOffset(mLastGroup));
-
-        _serialDebug.infoStr("|-", _patterns.groupName(mLastGroup));
-        _serialDebug.infoStr("|-", _patterns.patternName(mLastGroup, mLastPattern));
 
         // Now get the data for the last pattern.
         uint16_t offset = patternOffset(mLastPattern, mLastGroup);
         mLastData.mSpeed = EEPROM.read(patternSpeedOffset(offset));
         mLastData.mColor = EEPROM.read(patternColorOffset(offset));
-
-        _serialDebug.infoInt("|--speed", mLastData.mSpeed);
-        _serialDebug.infoInt("|--color", mLastData.mColor);
     }
     else
-    {
-        _group = mLastGroup = _patternDefaults[3][0];       // Flag group
-        _pattern = mLastPattern = _patternDefaults[3][1];   // American Flag
-        mLastData.mSpeed = _patternDefaults[3][2];
-        mLastData.mColor = _patternDefaults[3][3];
+        writeDefaults();
+}
 
-        EEPROM.write(lastGroupOffset(), mLastGroup);
+void Menu::writeDefaults()
+{
+    _group = mLastGroup = pgm_read_word(&_patternDefaults[3][0]);       // Flag group
+    _pattern = mLastPattern = pgm_read_word(&_patternDefaults[3][1]);   // American Flag
+    mLastData.mSpeed = pgm_read_word(&_patternDefaults[3][2]);
+    mLastData.mColor = pgm_read_word(&_patternDefaults[3][3]);
 
-        for (int group=0; group<=patternGroupType::EMERGENCY_GROUP; group++)
-            EEPROM.write(groupOffset(group), mLastPattern);
+    EEPROM.write(lastGroupOffset(), mLastGroup);
 
-        for (uint8_t i=0; i<sizeof(_patternDefaults)/sizeof(_patternDefaults[0]); i++)
-            writePatternSpeedColor(_patternDefaults[i][0], _patternDefaults[i][1], _patternDefaults[i][2], _patternDefaults[i][3]);
+    for (int group=0; group<=patternGroupType::EMERGENCY_GROUP; group++)
+        EEPROM.write(groupOffset(group), mLastPattern);
 
-        EEPROM.write(mWriteOffset, MAGIC_NUMBER);
-    }
+    for (uint8_t i=0; i<sizeof(_patternDefaults)/sizeof(_patternDefaults[0]); i++)
+        writePatternSpeedColor(
+            pgm_read_word(&_patternDefaults[i][0]), 
+            pgm_read_word(&_patternDefaults[i][1]), 
+            pgm_read_word(&_patternDefaults[i][2]), 
+            pgm_read_word(&_patternDefaults[i][3]));
+
+    EEPROM.write(mWriteOffset, MAGIC_NUMBER);
 }
 
 void Menu::dumpPatterns()
@@ -202,18 +201,11 @@ void Menu::dumpPatterns()
     }
 }
 
-void Menu::print(const char* prompt, int value)
-{
-    Serial.print(prompt);
-    Serial.print(": ");
-    Serial.println(value);
-}
-
-void Menu::writeGroupSpeedColor(uint8_t group, uint8_t speed, uint8_t color)
-{
-    for (int pattern=0; pattern<_patterns.groupPatternCount((patternGroupType)group); pattern++)
-        writePatternSpeedColor(group, pattern, speed, color);
-}
+// void Menu::writeGroupSpeedColor(uint8_t group, uint8_t speed, uint8_t color)
+// {
+//     for (int pattern=0; pattern<_patterns.groupPatternCount((patternGroupType)group); pattern++)
+//         writePatternSpeedColor(group, pattern, speed, color);
+// }
 
 void Menu::writePatternSpeedColor(uint8_t group, uint8_t pattern, uint8_t speed, uint8_t color)
 {
@@ -258,34 +250,25 @@ bool Menu::patternChanged()
     return mLastPattern != _pattern;
 }
 
-
-void Menu::writeLastMenu()
-{
-    writeLastGroup();
-    writeLastPattern();
-    writeLastPatternData();
-}
+// void Menu::writeLastMenu()
+// {
+//     writeLastGroup();
+//     writeLastPattern();
+//     writeLastPatternData();
+// }
 
 void Menu::writeLastGroup()
 {
-    _serialDebug.info("|-writeLastGroup");
-    _serialDebug.infoStr("|--", _patterns.groupName(mLastGroup));
-
     EEPROM.write(lastGroupOffset(), mLastGroup);
 }
 
 void Menu::writeLastPattern()
 {
-    _serialDebug.info("|-writeLastPattern");
-    _serialDebug.infoStr("|--", _patterns.patternName(mLastGroup, mLastPattern));
-
     EEPROM.write(groupOffset(mLastGroup), mLastPattern);
 }
 
 void Menu::writeLastPatternData()
 {
-    _serialDebug.info("|-writeLastPatternData");
-
     if (mLastGroup < (uint8_t)patternGroupType::CYCLE_GROUP)
     {
         uint16_t offset = patternOffset(mLastPattern, mLastGroup);
@@ -301,46 +284,29 @@ void Menu::writeLastPatternData()
 
 void Menu::updateLastGroup(bool displayLastPattern)
 {
-    _serialDebug.info("|-updateLastGroup");
-
     mLastGroup = _group;
     mLastPattern = _pattern = (displayLastPattern) ? readLastPattern() : _pattern;
-
-    _serialDebug.infoStr("|--", _patterns.groupName(mLastGroup));
-    _serialDebug.infoStr("|--", _patterns.patternName(mLastGroup, mLastPattern));
 
     readLastPatternData();
 
     _speed.saveSensorPosition();
     _color.saveSensorPosition();
-
-    _serialDebug.infoInt("|--savedSpeed", _speed.savedSensorPosition());
-    _serialDebug.infoInt("|--savedColor", _color.savedSensorPosition());
 }
 
 void Menu::updateLastPattern()
 {
-    _serialDebug.info("|-updateLastPattern");
-
     mLastPattern = _pattern;
-
-    _serialDebug.infoStr("|--", _patterns.groupName(mLastGroup));
-    _serialDebug.infoStr("|--", _patterns.patternName(mLastGroup, mLastPattern));
 
     readLastPatternData();
 
     _speed.saveSensorPosition();
     _color.saveSensorPosition();
-
-    _serialDebug.infoInt("|--savedSpeed", _speed.savedSensorPosition());
-    _serialDebug.infoInt("|--savedColor", _color.savedSensorPosition());
 }
 
-
-uint8_t Menu::readLastGroup()
-{
-    return EEPROM.read(lastGroupOffset());
-}
+// uint8_t Menu::readLastGroup()
+// {
+//     return EEPROM.read(lastGroupOffset());
+// }
 
 uint8_t Menu::readLastPattern()
 {
@@ -349,14 +315,9 @@ uint8_t Menu::readLastPattern()
 
 Pattern Menu::readLastPatternData()
 {
-    _serialDebug.info("|-readLastPatternData");
-
     uint16_t offset = patternOffset(mLastPattern, mLastGroup);
     mLastData.mSpeed = EEPROM.read(patternSpeedOffset(offset));
     mLastData.mColor = EEPROM.read(patternColorOffset(offset));
-
-    _serialDebug.infoInt("|--readSpeed", mLastData.mSpeed);
-    _serialDebug.infoInt("|--readColor", mLastData.mColor);
 
     return mLastData;
 }
@@ -365,10 +326,7 @@ Pattern Menu::readLastPatternData()
 uint8_t Menu::currentSpeed()
 {
     if (_speed.sensorPositionChanged())
-    {
-        _serialDebug.infoInt("Speed", _speed.value());
         return _speed.value();
-    }
 
     return mLastData.mSpeed;
 }
@@ -376,10 +334,7 @@ uint8_t Menu::currentSpeed()
 uint8_t Menu::currentColor()
 {
     if (_color.sensorPositionChanged())
-    {
-        _serialDebug.infoInt("Color", _color.value());
         return _color.value();
-    }
 
     return mLastData.mColor;
 }
@@ -387,9 +342,4 @@ uint8_t Menu::currentColor()
 uint8_t Menu::currentBrightness()
 {
     return _bright.read();
-}
-
-uint8_t Menu::lastBrightness()
-{
-    return _bright.lastRead();
 }

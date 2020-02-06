@@ -15,15 +15,41 @@ private:
     bool BuzzerOn;
 
 public:
-    Buzzer(int pin, int freq);
+    Buzzer(int pin, int freq)
+    {
+        Pin = pin;
+        Freq = freq;
 
-    void begin();
+        BuzzerOn = false;
+    }
 
-    void beep(int millis = 100);
+    void begin()
+    {
+        pinMode(Pin, OUTPUT);
+        digitalWrite(Pin, LOW);
+    }
 
-    void on();
+    void beep(int millis=100)
+    {
+        tone(Pin, Freq);
+        delay(millis);
+        noTone(Pin);
+    }
 
-    void off();
+    // void Buzzer::on()
+    // {
+    //     if (!BuzzerOn)
+    //     {
+    //         tone(Pin, Freq);
+    //         BuzzerOn = true;
+    //     }
+    // }
+
+    // void Buzzer::off()
+    // {
+    //     noTone(Pin);
+    //     BuzzerOn = false;
+    // }
 };
 
 extern Buzzer _buzzer;

@@ -4,18 +4,20 @@ Patterns _patterns(MAX_PIXELS, LED_RING_PIN);
 
 int _cycleDelayMS = 8000;
 
+#define WHITE_DIM_FACTOR 3
+
 //
 // GROUP & PATTERN INITI
 //
-const uint8_t Patterns::maxGroups()
-{
-    return (uint8_t)patternGroupType::NUMBER_OF_GROUPS;
-}
+// const uint8_t Patterns::maxGroups()
+// {
+//     return (uint8_t)patternGroupType::NUMBER_OF_GROUPS;
+// }
 
-const uint8_t Patterns::maxGroupPatterns()
-{
-    return 10; // Arbitrary limit to patterns in a group.
-}
+// const uint8_t Patterns::maxGroupPatterns()
+// {
+//     return 10; // Arbitrary limit to patterns in a group.
+// }
 
 const uint8_t Patterns::groupPatternCount(patternGroupType group)
 {
@@ -45,148 +47,148 @@ const uint8_t Patterns::groupPatternCount(patternGroupType group)
     }
 }
 
-const char* Patterns::groupName(uint8_t group)
-{
-#if defined(USE_SERIAL)
+// const char* Patterns::groupName(uint8_t group)
+// {
+// #if defined(USE_SERIAL)
 
-    static char buffer[20];
-    const PROGMEM static char names[][20] =
-    {
-        "STROBE_GROUP",
-        "FLAG_GROUP",
-        "RAINBOW_GROUP",
-        "COLOR_GROUP",
-        "BOUNCE_GROUP",
-        "HOLIDAY_GROUP",
-        "EMERGENCY_GROUP",
-        "CYCLE_GROUP",
-        "CYCLE_ALL_GROUP",
-        "RANDOM_PATTERN_GROUP",
-    };
+//     static char buffer[20];
+//     const PROGMEM static char names[][20] =
+//     {
+//         "STROBE_GROUP",
+//         "FLAG_GROUP",
+//         "RAINBOW_GROUP",
+//         "COLOR_GROUP",
+//         "BOUNCE_GROUP",
+//         "HOLIDAY_GROUP",
+//         "EMERGENCY_GROUP",
+//         "CYCLE_GROUP",
+//         "CYCLE_ALL_GROUP",
+//         "RANDOM_PATTERN_GROUP",
+//     };
 
-    strcpy_P(buffer, (char*)&(names[group]));
+//     strcpy_P(buffer, (char*)&(names[group]));
 
-    return buffer;
+//     return buffer;
 
-#else
+// #else
 
-    return "";
+//     return "";
 
-#endif
-}
+// #endif
+// }
 
-const char* Patterns::patternName(uint8_t group, uint8_t pattern)
-{
-#if defined(USE_SERIAL)
+// const char* Patterns::patternName(uint8_t group, uint8_t pattern)
+// {
+// #if defined(USE_SERIAL)
 
-    // This array was causing a stack overflow, so I had to move the data
-    // to the program memory space.
+//     // This array was causing a stack overflow, so I had to move the data
+//     // to the program memory space.
 
-    static char buffer[32];
-    const PROGMEM static char names[][10][32] =
-    {
-        { // STROBE_GROUP
-            "doubleStrobe",
-            "aircraftStrobe",
-            "landingLights",
-            "3",
-            "4",
-            "5"
-            "6",
-            "7",
-            "8",
-            "9"
-        },
-        { // FLAG_GROUP
-            "americanFlag",
-            "spainFlag",
-            "italianFlag",
-            "mexicanFlag",
-            "frenchFlag",
-            "canadianFlag",
-            "portugalFlag",
-            "rebelFlag",
-            "gayPrideFlag",
-            "9"
-        },
-        { // RAINBOW_GROUP
-            "rainbowFadeWave",
-            "rainbowTheaterWave",
-            "rainbowFade",
-            "rainbowTheater",
-            "gayPride",
-            "5",
-            "6",
-            "7",
-            "8",
-            "9"
-        },
-        { // COLOR_GROUP
-            "onFire",
-            "comet",
-            "fireFlies",
-            "randomPixels",
-            "flickerColor",
-            "starBurst",
-            "solidColor",
-            "7",
-            "8",
-            "9"
-        },
-        { // BOUNCE_GROUP
-            "rainbowNightRider",
-            "rainbowQuadRider",
-            "colorNightRider",
-            "colorQuadRider",
-            "bouncingBalls",
-            "5",
-            "6",
-            "7",
-            "8",
-            "9"
-        },
-        { // HOLIDAY_GROUP
-            "festiveLights",
-            "christmasLights",
-            "hanukkah",
-            "ramadan",
-            "valentineLights",
-            "saintPatrickLights",
-            "easterLights",
-            "independenceLights",
-            "halloweenLights",
-            "thanksGivingLights",
-        },
-        { // EMERGENCY_GROUP
-            "chasingPoliceLights",
-            "redBlueTripleSegmentFlash",
-            "redBlueHalfRingFlash",
-            "redBlueHalfRingCrawl",
-            "redBlueTripleFlash"
-            "5",
-            "6",
-            "7",
-            "8",
-            "9"
-        }
-    };
+//     static char buffer[32];
+//     const PROGMEM static char names[][10][32] =
+//     {
+//         { // STROBE_GROUP
+//             "doubleStrobe",
+//             "aircraftStrobe",
+//             "landingLights",
+//             "3",
+//             "4",
+//             "5"
+//             "6",
+//             "7",
+//             "8",
+//             "9"
+//         },
+//         { // FLAG_GROUP
+//             "americanFlag",
+//             "spainFlag",
+//             "italianFlag",
+//             "mexicanFlag",
+//             "frenchFlag",
+//             "canadianFlag",
+//             "portugalFlag",
+//             "rebelFlag",
+//             "gayPrideFlag",
+//             "9"
+//         },
+//         { // RAINBOW_GROUP
+//             "rainbowFadeWave",
+//             "rainbowTheaterWave",
+//             "rainbowFade",
+//             "rainbowTheater",
+//             "gayPride",
+//             "5",
+//             "6",
+//             "7",
+//             "8",
+//             "9"
+//         },
+//         { // COLOR_GROUP
+//             "onFire",
+//             "comet",
+//             "fireFlies",
+//             "randomPixels",
+//             "flickerColor",
+//             "starBurst",
+//             "solidColor",
+//             "7",
+//             "8",
+//             "9"
+//         },
+//         { // BOUNCE_GROUP
+//             "rainbowNightRider",
+//             "rainbowQuadRider",
+//             "colorNightRider",
+//             "colorQuadRider",
+//             "bouncingBalls",
+//             "5",
+//             "6",
+//             "7",
+//             "8",
+//             "9"
+//         },
+//         { // HOLIDAY_GROUP
+//             "festiveLights",
+//             "christmasLights",
+//             "hanukkah",
+//             "ramadan",
+//             "valentineLights",
+//             "saintPatrickLights",
+//             "easterLights",
+//             "independenceLights",
+//             "halloweenLights",
+//             "thanksGivingLights",
+//         },
+//         { // EMERGENCY_GROUP
+//             "chasingPoliceLights",
+//             "redBlueTripleSegmentFlash",
+//             "redBlueHalfRingFlash",
+//             "redBlueHalfRingCrawl",
+//             "redBlueTripleFlash"
+//             "5",
+//             "6",
+//             "7",
+//             "8",
+//             "9"
+//         }
+//     };
 
-    if (group == CYCLE_GROUP)
-        return "cycle";
-    else if (group == CYCLE_ALL_GROUP)
-        return "cycleAll";
-    else if (group == RANDOM_PATTERN_GROUP)
-        return "randomPattern"
+//     if (group == CYCLE_GROUP)
+//         return "cycle";
+//     else if (group == CYCLE_ALL_GROUP)
+//         return "cycleAll";
+//     else if (group == RANDOM_PATTERN_GROUP)
+//         return "randomPattern"
 
-    strcpy_P(buffer, (char*)&(names[group][pattern]));
-    return buffer;
+//     strcpy_P(buffer, (char*)&(names[group][pattern]));
+//     return buffer;
 
-#else
+// #else
 
-    return "";
+//     return "";
 
-#endif
-}
+// #endif
+// }
 
 
 //
@@ -415,18 +417,18 @@ void Patterns::americanFlag()
     initSpeed();
 
     // ALL WHITE STRIPES
-    setRingColor(white(knobs.brightness));
+    setRingColor(white(knobs.brightness/WHITE_DIM_FACTOR));
 
     // STRIPS RIGHT
     uint8_t stripWidth = _ring.topQuarter() / 7;
     uint8_t extraPixels = _ring.topQuarter() % 7;
 
     setPixelColor(red(knobs.brightness), 0, extraPixels, CW);
-    setPixelColor(red(knobs.brightness), extraPixels, _ring.topQuarter(), CW, stripWidth*2, stripWidth);
+    if (extraPixels > 0)
+        setPixelColor(red(knobs.brightness), extraPixels, _ring.topQuarter(), CW, stripWidth*2, stripWidth);
 
     // Strips Bottom
     stripWidth = _ring.bottomQuarter() / 6;
-    extraPixels = _ring.bottomQuarter() % 6;
 
     setPixelColor(red(knobs.brightness), _ring.topQuarter()+stripWidth, _ring.bottomQuarter()-stripWidth, CW, stripWidth*2, stripWidth);
     setPixelColor(red(knobs.brightness), _ring.topQuarter()+stripWidth, _ring.bottomQuarter()-stripWidth, CCW, stripWidth*2, stripWidth);
@@ -471,7 +473,7 @@ void Patterns::italianFlag()
     uint8_t stripWidth = _ring.halfPixels() / 3;
     uint8_t extraPixels = _ring.halfPixels() % 3;
 
-    setRingColor(white(knobs.brightness));
+    setRingColor(white(knobs.brightness/WHITE_DIM_FACTOR));
 
     setPixelColor(green(knobs.brightness), 0, stripWidth);
     setPixelColor(green(knobs.brightness), 0, stripWidth, CCW);
@@ -492,10 +494,10 @@ void Patterns::mexicanFlag()
     setPixelColor(red(knobs.brightness), 0, _ring.halfPixels());
     setPixelColor(green(knobs.brightness), 0, _ring.halfPixels(), CCW);
 
-    setPixelColor(white(knobs.brightness), 0, 12+topOffset);
-    setPixelColor(white(knobs.brightness), 0, 12+topOffset, CCW);
-    setPixelColor(white(knobs.brightness), _ring.halfPixels()-12, 12);
-    setPixelColor(white(knobs.brightness), _ring.halfPixels()-12, 12, CCW);
+    setPixelColor(white(knobs.brightness/WHITE_DIM_FACTOR), 0, 12+topOffset);
+    setPixelColor(white(knobs.brightness/WHITE_DIM_FACTOR), 0, 12+topOffset, CCW);
+    setPixelColor(white(knobs.brightness/WHITE_DIM_FACTOR), _ring.halfPixels()-12, 12);
+    setPixelColor(white(knobs.brightness/WHITE_DIM_FACTOR), _ring.halfPixels()-12, 12, CCW);
 
     show(knobs.speed);
 }
@@ -510,10 +512,10 @@ void Patterns::frenchFlag()
     setPixelColor(red(knobs.brightness), 0, _ring.halfPixels());
     setPixelColor(blue(knobs.brightness), 0, _ring.halfPixels(), CCW);
 
-    setPixelColor(white(knobs.brightness), 0, 12+topOffset);
-    setPixelColor(white(knobs.brightness), 0, 12+topOffset, CCW);
-    setPixelColor(white(knobs.brightness), _ring.halfPixels()-12, 12);
-    setPixelColor(white(knobs.brightness), _ring.halfPixels()-12, 12, CCW);
+    setPixelColor(white(knobs.brightness/WHITE_DIM_FACTOR), 0, 12+topOffset);
+    setPixelColor(white(knobs.brightness/WHITE_DIM_FACTOR), 0, 12+topOffset, CCW);
+    setPixelColor(white(knobs.brightness/WHITE_DIM_FACTOR), _ring.halfPixels()-12, 12);
+    setPixelColor(white(knobs.brightness/WHITE_DIM_FACTOR), _ring.halfPixels()-12, 12, CCW);
 
     show(knobs.speed);
 }
@@ -528,10 +530,10 @@ void Patterns::canadianFlag()
     setPixelColor(red(knobs.brightness), 0, _ring.halfPixels());
     setPixelColor(red(knobs.brightness), 0, _ring.halfPixels(), CCW);
 
-    setPixelColor(white(knobs.brightness), 0, 12+topOffset);
-    setPixelColor(white(knobs.brightness), 0, 12+topOffset, CCW);
-    setPixelColor(white(knobs.brightness), _ring.halfPixels()-12, 12);
-    setPixelColor(white(knobs.brightness), _ring.halfPixels()-12, 12, CCW);
+    setPixelColor(white(knobs.brightness/WHITE_DIM_FACTOR), 0, 12+topOffset);
+    setPixelColor(white(knobs.brightness/WHITE_DIM_FACTOR), 0, 12+topOffset, CCW);
+    setPixelColor(white(knobs.brightness/WHITE_DIM_FACTOR), _ring.halfPixels()-12, 12);
+    setPixelColor(white(knobs.brightness/WHITE_DIM_FACTOR), _ring.halfPixels()-12, 12, CCW);
 
     show(knobs.speed);
 }
@@ -559,13 +561,13 @@ void Patterns::rebelFlag()
 
     setRingColor(red(knobs.brightness));
 
-    setPixelColor(white(knobs.brightness), _ring.topQuarter()/2-6, _ring.topQuarter()+8, CW, _ring.topQuarter(), 2);
+    setPixelColor(white(knobs.brightness/WHITE_DIM_FACTOR), _ring.topQuarter()/2-6, _ring.topQuarter()+8, CW, _ring.topQuarter(), 2);
     setPixelColor(blue(knobs.brightness), _ring.topQuarter()/2-4, _ring.topQuarter()+8, CW, _ring.topQuarter(), 8);
-    setPixelColor(white(knobs.brightness), _ring.topQuarter()/2+4, _ring.topQuarter()+8, CW, _ring.topQuarter(), 2);
+    setPixelColor(white(knobs.brightness/WHITE_DIM_FACTOR), _ring.topQuarter()/2+4, _ring.topQuarter()+8, CW, _ring.topQuarter(), 2);
 
-    setPixelColor(white(knobs.brightness), _ring.topQuarter()/2-6, _ring.topQuarter()+8, CCW, _ring.topQuarter(), 2);
+    setPixelColor(white(knobs.brightness/WHITE_DIM_FACTOR), _ring.topQuarter()/2-6, _ring.topQuarter()+8, CCW, _ring.topQuarter(), 2);
     setPixelColor(blue(knobs.brightness), _ring.topQuarter()/2-4, _ring.topQuarter()+8, CCW, _ring.topQuarter(), 8);
-    setPixelColor(white(knobs.brightness), _ring.topQuarter()/2+4, _ring.topQuarter()+8, CCW, _ring.topQuarter(), 2);
+    setPixelColor(white(knobs.brightness/WHITE_DIM_FACTOR), _ring.topQuarter()/2+4, _ring.topQuarter()+8, CCW, _ring.topQuarter(), 2);
 
     show(knobs.speed);
 }
@@ -1523,22 +1525,26 @@ void Patterns::redBlueTripleSegmentFlash()
 {
     initBrightness();
 
-    uint32_t colors1[] =
-    {
-        red(knobs.brightness),
-        black()
-    };
-
-    uint32_t colors2[] =
-    {
-        blue(knobs.brightness),
-        black()
-    };
-
     if (twinkle())
+    {
+        uint32_t colors1[] =
+        {
+            red(knobs.brightness),
+            black()
+        };
+
         stripedLights(colors1, sizeof(colors1)/sizeof(uint32_t));
+    }
     else
+    {
+        uint32_t colors2[] =
+        {
+            blue(knobs.brightness),
+            black()
+        };
+
         stripedLights(colors2, sizeof(colors2)/sizeof(uint32_t));
+    }
 }
 
 void Patterns::chasingPoliceLights()
@@ -1783,39 +1789,39 @@ uint32_t Patterns::colorWheel(byte WheelPos)
 // Input a value 0 to 255 to get a color value. There are 85 transitions
 // between each primary color (RGB).
 // The colours are a transition r - g - b - back to r.
-uint32_t Patterns::colorWheel2(byte WheelPos)
-{
-    if (WheelPos < 43) // Red to Yellow
-        return rgbColor(252, WheelPos * 6, 0);
+// uint32_t Patterns::colorWheel2(byte WheelPos)
+// {
+//     if (WheelPos < 43) // Red to Yellow
+//         return rgbColor(252, WheelPos * 6, 0);
 
-    if (WheelPos <= 85) // Yellow to Green
-    {
-        WheelPos -= 43;
-        return rgbColor(252 - WheelPos * 6, 252, 0);
-    }
+//     if (WheelPos <= 85) // Yellow to Green
+//     {
+//         WheelPos -= 43;
+//         return rgbColor(252 - WheelPos * 6, 252, 0);
+//     }
 
-    if (WheelPos < 128) // Green to Cyan
-    {
-        WheelPos -= 85;
-        return rgbColor(0, 252, WheelPos * 6);
-    }
+//     if (WheelPos < 128) // Green to Cyan
+//     {
+//         WheelPos -= 85;
+//         return rgbColor(0, 252, WheelPos * 6);
+//     }
 
-    if (WheelPos <= 170) // Cyan to Blue
-    {
-        WheelPos -= 128;
-        return rgbColor(0, 252 - WheelPos * 6, 252);
-    }
+//     if (WheelPos <= 170) // Cyan to Blue
+//     {
+//         WheelPos -= 128;
+//         return rgbColor(0, 252 - WheelPos * 6, 252);
+//     }
 
-    if (WheelPos < 212) // Blue to Magenta
-    {
-        WheelPos -= 169;
-        return rgbColor(WheelPos * 6, 0, 252);
-    }
+//     if (WheelPos < 212) // Blue to Magenta
+//     {
+//         WheelPos -= 169;
+//         return rgbColor(WheelPos * 6, 0, 252);
+//     }
 
-    WheelPos -= 213; // Magenta to Red
+//     WheelPos -= 213; // Magenta to Red
 
-    return rgbColor(252, 0, 252 - WheelPos * 6);
-}
+//     return rgbColor(252, 0, 252 - WheelPos * 6);
+// }
 
 uint32_t Patterns::adjustBrightness(uint32_t color, uint8_t brightness)
 {

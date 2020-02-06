@@ -26,12 +26,6 @@ void RingConfig::begin(uint16_t writeOffset)
         mTopCenter = EEPROM.read(address++);
         mTopQuarter = EEPROM.read(address++);
         mDirection = (DirectionType)min(EEPROM.read(address++), 1);
-
-        _serialDebug.info("Ring values restored.");
-        _serialDebug.infoInt("|-NumPixels", mNumPixels);
-        _serialDebug.infoInt("|-TopCenter", mTopCenter);
-        _serialDebug.infoInt("|-TopQuarter", mTopQuarter);
-        _serialDebug.infoInt("|-Direction", (int)mDirection);
     }
     else
     {
@@ -55,6 +49,25 @@ bool RingConfig::bothButtonsOpen()
     return (digitalRead(GROUP_BUTTON_PIN) == HIGH) && (digitalRead(PATTERN_BUTTON_PIN) == HIGH);
 }
 
+void RingConfig::eraseEEPROM()
+{
+    // If we're init'ing the ring, clear out the EEPROM too.
+    for (uint16_t i=0; i<EEPROM.length(); i++) 
+        EEPROM.write(i, 0);
+}
+
+void RingConfig::writeDefaults()
+{
+    // Reset to known defaults!
+    mNumPixels = MAX_PIXELS;
+    mTopCenter = MAX_PIXELS/2;
+    mTopQuarter = MAX_PIXELS/4;
+    mDirection = DirectionType::CCW;
+
+    save();
+}
+
+
 void RingConfig::init()
 {
     _patterns.displayInit();
@@ -62,16 +75,9 @@ void RingConfig::init()
 
     delay(500);
 
-    // If we're init'ing the ring, clear out the EEPROM too.
-    for (uint16_t i=0; i<EEPROM.length(); i++) 
-        EEPROM.write(i, 0);
+    eraseEEPROM();
 
-    // Reset to known defaults!
-    mNumPixels = MAX_PIXELS;
-    mTopCenter = MAX_PIXELS/2;
-    mTopQuarter = MAX_PIXELS/4;
-    mDirection = DirectionType::CCW;
-    save();
+    writeDefaults();
 
     // Initialize the numPixels variable...
     while (bothButtonsOpen())
@@ -106,10 +112,4 @@ void RingConfig::save()
     EEPROM.write(address++, mTopCenter);
     EEPROM.write(address++, mTopQuarter);
     EEPROM.write(address++, (uint8_t)mDirection);
-
-    _serialDebug.info("Ring values Saved.");
-    _serialDebug.infoInt("-NumPixels", mNumPixels);
-    _serialDebug.infoInt("-TopCenter", mTopCenter);
-    _serialDebug.infoInt("-TopQuarter", mTopQuarter);
-    _serialDebug.infoInt("-Direction", (int)mDirection);
 }

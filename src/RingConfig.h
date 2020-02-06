@@ -25,6 +25,8 @@ private:
 public:
     RingConfig(uint16_t numPixels, uint8_t topCenter, uint8_t topQuarter, DirectionType direction)
     {
+        mWriteOffset = 0;
+
         mNumPixels = numPixels;
         mTopCenter = topCenter;
         mTopQuarter = topQuarter;
@@ -37,6 +39,8 @@ public:
     bool bothButtonsOpen();
     void init();
     void save();
+    void eraseEEPROM();
+    void writeDefaults();
 
     inline uint16_t numPixels() { return mNumPixels; }
     inline uint8_t topCenter() { return mTopCenter; }

@@ -39,6 +39,8 @@ public:
         mPin = pin;
         mNumSamples = numSamples;
 
+        mSum = mIndex = mValue = mLastRead = mSavedRead = 0;
+
         // Defines the number of bits to shift the ADC read to the right.
         mBitShift = bitShift;
 
@@ -112,17 +114,15 @@ public:
 
     int knobPosition()
     {
-        // The knob is in the middle (12 o'clock, within 16 each side).
-        int pos = POS_UNKNOWN;
-        uint16_t value = (mFlip) ? Flip(read()) : read();
+        read();
 
-        pos = POS_CENTER;
-        if (value < POS_RANGE)
-            pos = POS_RIGHT;
-        else if (value > mMaxValue-POS_RANGE)
-            pos = POS_LEFT;
+        if (mValue < POS_RANGE)
+            return POS_LEFT;
 
-        return pos;
+        if (mValue > (int)(mMaxValue-POS_RANGE))
+            return POS_RIGHT;
+
+        return POS_CENTER;
     }
 
     uint16_t lastRead()

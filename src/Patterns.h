@@ -183,12 +183,12 @@ public:
     bool isFirstFrame() { bool firstFrame = mInit; if (firstFrame) mInit = !mInit; return firstFrame; }
 
     // HELPERS FOR THE MENU SYSTEM IN LOOP.
-    const uint8_t maxGroups();
-    const uint8_t maxGroupPatterns();
+    // const uint8_t maxGroups();
+    // const uint8_t maxGroupPatterns();
     const uint8_t groupPatternCount(patternGroupType pattern);
 
-    const char* groupName(uint8_t group);
-    const char* patternName(uint8_t group, uint8_t pattern);
+    const char* groupName(uint8_t group) { return ""; };
+    const char* patternName(uint8_t group, uint8_t pattern) { return ""; };
 
     void displayPattern();
     void displayPattern(uint8_t group);
@@ -216,7 +216,7 @@ public:
 
     // Returns a color from the color wheel based on index from 0..255
     uint32_t colorWheel(byte WheelPos);
-    uint32_t colorWheel2(byte WheelPos);
+//    uint32_t colorWheel2(byte WheelPos);
 
     // Takes a color wheel index and brightness and returns the color.
     uint32_t toColor(uint8_t colorIndex, uint8_t brightness, bool useWhite=false) { 

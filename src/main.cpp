@@ -1,6 +1,5 @@
 #include <Arduino.h>
 #include <avr/sleep.h>
-#include <EEPROM.h>
 
 #include "Global.h"
 #include "RingConfig.h"
@@ -8,8 +7,6 @@
 #include "SensorRead.h"
 #include "Buzzer.h"
 #include "Menu.h"
-
-const char* VERSION_NO = "Rev 4.0.02";
 
 // PIN ASSIGNMENTS
 #define PWR_LED_PIN   8
@@ -205,11 +202,6 @@ void setup()
 
     pinMode(PWR_EN_PIN, INPUT);
 
-    _serialDebug.begin();
-    _serialDebug.info("SUPER LED Lights");
-    _serialDebug.info(VERSION_NO);
-    _serialDebug.info();
-
     _buzzer.begin();
 
     // Are we in CHARGING mode...
@@ -238,10 +230,6 @@ void setup()
     _color.begin();
     _bright.begin();
 
-    // Enable these lines to debug init issues.
-    for (uint16_t i=0; i<EEPROM.length(); i++) 
-        EEPROM.write(i, 0);
-
     _ringConfig.begin();
     _ring.begin();
 
@@ -261,7 +249,7 @@ void setup()
         {
             _mode = MODE_CONTINUOUS;
         }
-        else if (brightPos == POS_RIGHT && speedPos == POS_LEFT && colorPos == POS_RIGHT)  // PG-RRR
+        else if (brightPos == POS_RIGHT && speedPos == POS_RIGHT && colorPos == POS_RIGHT) // PG-RRR
         {
             _mode = MODE_CYCLE_LONG;
             _cycleDelayMS = 8000;
@@ -271,17 +259,17 @@ void setup()
             _mode = MODE_CYCLE_SHORT;
             _cycleDelayMS = 3000;
         }
-        else if (brightPos == POS_RIGHT && speedPos == POS_RIGHT && colorPos == POS_RIGHT) // PG-LRL
+        else if (brightPos == POS_LEFT && speedPos == POS_RIGHT && colorPos == POS_LEFT)   // PG-LRL
         {
             _mode = MODE_STROBES;
         }
     }
-    else if (digitalRead(GROUP_BUTTON_PIN) == LOW)    // G
+    else if (digitalRead(GROUP_BUTTON_PIN) == LOW)    // pG-?X?, where X is between 3 and 15 seconds
     {
         _mode = MODE_FAVORITES ;
         _cycleDelayMS = map(speedPos, 0, _speed.maxValue(), 3, 15) * 1000;
     } 
-    else if (digitalRead(PATTERN_BUTTON_PIN) == LOW) // P
+    else if (digitalRead(PATTERN_BUTTON_PIN) == LOW) // Pg-?X?, where X is between 3 and 15 seconds
     {
         _mode = MODE_RANDOM;
         _cycleDelayMS = map(speedPos, 0, _speed.maxValue(), 3, 15) * 1000;
@@ -367,10 +355,6 @@ void loop()
     {
         _buzzer.beep();
 
-        _serialDebug.info();
-        _serialDebug.info(_patterns.groupName(_menu.lastGroup()));
-        _serialDebug.info(_patterns.groupName(_group));
-
         // Save the current pattern data for the item we're leaving.
         _menu.writeLastPatternData();
 
@@ -388,9 +372,6 @@ void loop()
     {
         _buzzer.beep();
 
-        _serialDebug.info();
-        _serialDebug.info(_patterns.patternName(_group, _pattern));
-
         _menu.writeLastPatternData();
 
         _menu.updateLastPattern();
@@ -401,6 +382,12 @@ void loop()
 
         _patterns.clear(true);
     }
+
+    // Default config.
+    // _ringConfig.eraseEEPROM();
+    // _ringConfig.writeDefaults();
+    // _menu.writeDefaults();
+    // while (1) ;
 
     _patterns.displayPattern();
 }
