@@ -116,11 +116,11 @@ public:
     {
         read();
 
-        if (mValue < POS_RANGE)
-            return POS_LEFT;
-
-        if (mValue > (int)(mMaxValue-POS_RANGE))
+        if (Flip(mValue) < POS_RANGE)
             return POS_RIGHT;
+
+        if (Flip(mValue) > mMaxValue-POS_RANGE)
+            return POS_LEFT;
 
         return POS_CENTER;
     }
