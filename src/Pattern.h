@@ -6,6 +6,7 @@
 
 struct Pattern
 {
+    uint8_t mBright;
     uint8_t mSpeed;
     uint8_t mColor;
 };
