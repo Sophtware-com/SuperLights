@@ -147,17 +147,24 @@ public:
     {
         read(); // Set mValue. We always need to call this for Menu::current<> to work.
         
-        // If the new value is within '1' of the old, don't count as changed yet.
-        if (mSavedRead > mMaxValue || (uint16_t)mValue < min(mSavedRead-1, 0) || (uint16_t)mValue > max(mSavedRead+1,mMaxValue))
-        {
-            // Once the sensor position has been changed by the user,
-            // we set this to a value above the sensor position so this
-            // method will always return true until reset.
-            mSavedRead = mMaxValue + 1;
-            return true;
-        }
+        if (mSavedRead == (uint16_t)mValue)
+            return false;
 
-        return false;
+        // If the new value is within '1' of the old, don't count as changed yet.
+        if (mSavedRead == 0 && (uint16_t)mValue < 2)
+            return false;
+
+        if (mSavedRead == mMaxValue && (uint16_t)mValue > mMaxValue-2)
+            return false;
+
+        if ((uint16_t)mValue >= mSavedRead-1 && (uint16_t)mValue <= mSavedRead+1)
+            return false;
+
+        // Once the sensor position has been changed by the user,
+        // we set this to a value above the sensor position so this
+        // method will always return true until reset.
+        mSavedRead = mMaxValue + 1;
+        return true;
     }
 
     uint16_t savedSensorPosition()

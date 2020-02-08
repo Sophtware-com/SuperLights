@@ -12,7 +12,7 @@
 #define LED_RING_PIN 7
 #define LED_STAR_PIN 4
 
-#define TO_WHITE 254 // toColor/toRainbow/rainbowColor functions will change to white after this color.
+#define TO_WHITE 253 // toColor/toRainbow/rainbowColor functions will change to white after this color.
 
 #define CYCLE_DELAY_SECONDS 8 // How long each pattern displays in a cycle mode.
 
@@ -186,6 +186,7 @@ public:
     // const uint8_t maxGroups();
     // const uint8_t maxGroupPatterns();
     const uint8_t groupPatternCount(patternGroupType pattern);
+    const uint8_t patternCount();
 
     const char* groupName(uint8_t group) { return ""; };
     const char* patternName(uint8_t group, uint8_t pattern) { return ""; };
