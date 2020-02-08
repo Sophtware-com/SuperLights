@@ -252,12 +252,12 @@ void setup()
         else if (brightPos == POS_RIGHT && speedPos == POS_RIGHT && colorPos == POS_RIGHT) // PG-RRR
         {
             _mode = MODE_CYCLE_LONG;
-            _cycleDelayMS = 300 / _patterns.patternCount() * 1000; // All patterns in 5 minutes
+            _cycleDelayMS = (300000 / _patterns.patternCount()) - (27 * _patterns.patternCount()); // All patterns in 5 minutes, minus 30ms transition time.
         }
         else if (brightPos == POS_RIGHT && speedPos == POS_RIGHT && colorPos == POS_LEFT)  // PG-RRL
         {
             _mode = MODE_CYCLE_SHORT;
-            _cycleDelayMS = 120 / _patterns.patternCount() * 1000; // All patterns in 2 minutes.
+            _cycleDelayMS = (120000 / _patterns.patternCount()) - (27 * _patterns.patternCount()); // All patterns in 2 minutes, minus 30ms transition time.
         }
         else if (brightPos == POS_LEFT && speedPos == POS_RIGHT && colorPos == POS_LEFT)   // PG-LRL
         {
