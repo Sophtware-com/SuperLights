@@ -18,8 +18,8 @@ volatile uint8_t _pattern;
 const uint8_t _patternDefaults[][4] PROGMEM = 
 {
     { 0, 0, 0, 255 },
-    { 0, 1, 42, 173 },
-    { 0, 2, 0, 191 },
+    { 0, 1, 0, 255 },
+    { 0, 2, 0, 176 },
     { 1, 0, 157, 0 },
     { 1, 1, 0, 0 },
     { 1, 2, 0, 0 },
@@ -74,7 +74,9 @@ const uint8_t _patternDefaults[][4] PROGMEM =
 //
 //   -PATTERN GROUPS-
 //   ⌜ 00 - MAGIC_NUMBER
-//   ⌞ 01 - LastGroup
+//   | 01 - LastGroup
+//   | 02 - StrobeBright
+//   ⌞ 03 - NavBright
 //   -PATTERNS-
 //   ⌜ 02.00 - LastPattern
 //   | 03.01 - P1.Speed
@@ -103,9 +105,19 @@ uint16_t Menu::lastGroupOffset()
     return mWriteOffset + 1;
 }
 
+uint16_t Menu::strobeBrightOffset()
+{
+    return mWriteOffset + 2;
+}
+
+uint16_t Menu::navBrightOffset()
+{
+    return mWriteOffset + 3;
+}
+
 uint16_t Menu::groupOffset(uint8_t group)
 {
-    return (((MAX_PATTERNS * 2) + 1) * group) + mWriteOffset + 2;
+    return (((MAX_PATTERNS * 2) + 1) * group) + mWriteOffset + 4;
 }
 
 uint16_t Menu::patternOffset(uint8_t pattern, uint8_t group)
@@ -159,6 +171,9 @@ void Menu::writeDefaults()
 
     EEPROM.write(lastGroupOffset(), mLastGroup);
 
+    EEPROM.write(strobeBrightOffset(), 60); // Double Strobe
+    EEPROM.write(navBrightOffset(), 60);   // Navigation Pattern
+
     for (int group=0; group<=patternGroupType::EMERGENCY_GROUP; group++)
         EEPROM.write(groupOffset(group), mLastPattern);
 
@@ -177,6 +192,14 @@ void Menu::dumpPatterns()
     Serial.begin(9600);
 
     while (!Serial) ;
+
+    Serial.print("Brightness: ");
+    Serial.println(_menu.currentBrightness());
+
+    Serial.print("Stobe: ");
+    Serial.println(EEPROM.read(strobeBrightOffset())); // Double Strobe
+    Serial.print("Nav: ");
+    Serial.println(EEPROM.read(navBrightOffset()));    // Navigation Strobe
 
     Serial.println("Group,Pattern,Speed,Color");
 
@@ -221,8 +244,20 @@ void Menu::restorePattern(uint8_t group, uint8_t pattern)
     mLastData.mSpeed = EEPROM.read(patternSpeedOffset(offset));
     mLastData.mColor = EEPROM.read(patternColorOffset(offset));
 
+    if (group == patternGroupType::STROBE_GROUP)
+    {
+        if (pattern == 0)
+            mLastData.mBright = EEPROM.read(strobeBrightOffset());
+
+        if (pattern == 1)
+            mLastData.mBright = EEPROM.read(navBrightOffset());
+    }
+    else
+        mLastData.mBright = _bright.value();
+
     _speed.saveSensorPosition();
     _color.saveSensorPosition();
+    _bright.saveSensorPosition();
 }
 
 uint8_t Menu::defaultPattern(uint8_t group)
@@ -233,8 +268,20 @@ uint8_t Menu::defaultPattern(uint8_t group)
     mLastData.mSpeed = EEPROM.read(patternSpeedOffset(offset));
     mLastData.mColor = EEPROM.read(patternColorOffset(offset));
 
+    if (group == patternGroupType::STROBE_GROUP)
+    {
+        if (pattern == 0)
+            mLastData.mBright = EEPROM.read(strobeBrightOffset());
+
+        if (pattern == 1)
+            mLastData.mBright = EEPROM.read(navBrightOffset());
+    }
+    else
+        mLastData.mBright = _bright.value();
+
     _speed.saveSensorPosition();
     _color.saveSensorPosition();
+    _bright.saveSensorPosition();
 
     return pattern;
 }
@@ -278,6 +325,18 @@ void Menu::writeLastPatternData()
 
         if (_color.sensorPositionChanged())
             EEPROM.write(patternColorOffset(offset), _color.value());
+
+        if (_bright.sensorPositionChanged())
+        {
+            if (mLastGroup == patternGroupType::STROBE_GROUP)
+            {
+                if (mLastPattern == 0)
+                    EEPROM.write(strobeBrightOffset(), _bright.value());
+
+                if (mLastPattern == 1)
+                    EEPROM.write(navBrightOffset(), _bright.value());
+            }            
+        }
     }
 }
 
@@ -291,6 +350,7 @@ void Menu::updateLastGroup(bool displayLastPattern)
 
     _speed.saveSensorPosition();
     _color.saveSensorPosition();
+    _bright.saveSensorPosition();
 }
 
 void Menu::updateLastPattern()
@@ -301,6 +361,7 @@ void Menu::updateLastPattern()
 
     _speed.saveSensorPosition();
     _color.saveSensorPosition();
+    _bright.saveSensorPosition();
 }
 
 // uint8_t Menu::readLastGroup()
@@ -318,6 +379,17 @@ Pattern Menu::readLastPatternData()
     uint16_t offset = patternOffset(mLastPattern, mLastGroup);
     mLastData.mSpeed = EEPROM.read(patternSpeedOffset(offset));
     mLastData.mColor = EEPROM.read(patternColorOffset(offset));
+
+    if (mLastGroup == patternGroupType::STROBE_GROUP)
+    {
+        if (mLastPattern == 0)
+            mLastData.mBright = EEPROM.read(strobeBrightOffset());
+
+        if (mLastPattern == 1)
+            mLastData.mBright = EEPROM.read(navBrightOffset());
+    }
+    else
+        mLastData.mBright = _bright.value();
 
     return mLastData;
 }
@@ -341,5 +413,8 @@ uint8_t Menu::currentColor()
 
 uint8_t Menu::currentBrightness()
 {
-    return _bright.read();
+    if (_bright.sensorPositionChanged())
+        return _bright.value();
+
+    return mLastData.mBright;
 }

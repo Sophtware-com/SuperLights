@@ -63,6 +63,8 @@ public:
 
 protected:
     uint16_t lastGroupOffset();
+    uint16_t strobeBrightOffset();
+    uint16_t navBrightOffset();
     uint16_t groupOffset(uint8_t group);
     uint16_t patternOffset(uint8_t pattern, uint8_t group);
     uint16_t patternSpeedOffset(uint16_t patternOffset);
