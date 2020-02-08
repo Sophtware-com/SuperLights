@@ -252,12 +252,12 @@ void setup()
         else if (brightPos == POS_RIGHT && speedPos == POS_RIGHT && colorPos == POS_RIGHT) // PG-RRR
         {
             _mode = MODE_CYCLE_LONG;
-            _cycleDelayMS = 8000;
+            _cycleDelayMS = 300 / _patterns.groupPatternCount() * 1000; // All patterns in 5 minutes
         }
         else if (brightPos == POS_RIGHT && speedPos == POS_RIGHT && colorPos == POS_LEFT)  // PG-RRL
         {
             _mode = MODE_CYCLE_SHORT;
-            _cycleDelayMS = 3000;
+            _cycleDelayMS = 120 / _patterns.groupPatternCount() * 1000; // All patterns in 2 minutes.
         }
         else if (brightPos == POS_LEFT && speedPos == POS_RIGHT && colorPos == POS_LEFT)   // PG-LRL
         {
@@ -287,32 +287,24 @@ void setup()
     {
         _group = (uint8_t)patternGroupType::RANDOM_PATTERN_GROUP;
         _pattern = 0;
-
-        _menu.restorePattern(_group, _pattern);
     }
 
     if (_mode == MODE_FAVORITES )
     {
         _group = (uint8_t)patternGroupType::CYCLE_GROUP;
         _pattern = 0;
-
-        _menu.restorePattern(_group, _pattern);
     }
 
     if (_mode == MODE_CYCLE_LONG || _mode == MODE_CYCLE_SHORT)
     {
         _group = (uint8_t)patternGroupType::CYCLE_ALL_GROUP;
         _pattern = 0;
-
-        _menu.restorePattern(_group, _pattern);
     }
 
     if (_mode == MODE_STROBES)
     {
         _group = (uint8_t)patternGroupType::STROBE_GROUP;
         _pattern = _menu.defaultPattern(_group);
-
-        _menu.restorePattern(_group, _pattern);
     }
 
     // Display the MODE on the ring as a series of dashes.
@@ -333,6 +325,8 @@ void setup()
     _buzzer.beep();
     _patterns.ledTest(255);
     _patterns.clear(true);
+
+    _menu.restorePattern(_group, _pattern);
 }
 
 void loop()
