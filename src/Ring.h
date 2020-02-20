@@ -4,9 +4,15 @@
 #include <Arduino.h>
 #include "RingConfig.h"
 
-#define MAX_PIXELS  240     // The total number of pixels supported.
-                            // TODO: Need to make sure no buffer overruns
-                            // a the MAX size.
+#if defined(ARDUINO_AVR_NANO_EVERY)
+    #define MAX_PIXELS  480     // The total number of pixels supported.
+                                // TODO: Need to make sure no buffer overruns
+                                // a the MAX size.
+#elif
+    #define MAX_PIXELS  240     // The total number of pixels supported.
+                                // TODO: Need to make sure no buffer overruns
+                                // a the MAX size.
+#endif
 
 // For patterned LED displays, the more 'divisors' a strand of LEDs has
 // the easier it is for Super Lights to map that pattern to the strand.

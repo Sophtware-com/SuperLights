@@ -25,7 +25,7 @@ const uint8_t Patterns::groupPatternCount(patternGroupType group)
         case STROBE_GROUP:
             return 3;
         case FLAG_GROUP:
-            return 9;
+            return 10;
         case RAINBOW_GROUP:
             return 5;
         case COLOR_GROUP:
@@ -418,6 +418,8 @@ void Patterns::flagGroup(uint8_t pattern)
             rebelFlag(); break;
         case 8: // GAY PRIDE
             gayPrideFlag(); break;
+        case 9: // Hungry   
+            hungarianFlag(); break;
     }
 }
 
@@ -602,6 +604,25 @@ void Patterns::gayPrideFlag()
         setPixelColor(blue(knobs.brightness), stripWidth*4, stripWidth, dir);
         setPixelColor(violet(knobs.brightness), stripWidth*5, stripWidth+extraPixels, dir);
     }
+
+    show(knobs.speed);
+}
+
+void Patterns::hungarianFlag()
+{
+    initBrightness();
+    initSpeed();
+
+    uint8_t stripWidth = _ring.halfPixels() / 3;
+    uint8_t extraPixels = _ring.halfPixels() % 3;
+
+    setRingColor(white(knobs.brightness/WHITE_DIM_FACTOR));
+
+    setPixelColor(red(knobs.brightness), 0, stripWidth);
+    setPixelColor(red(knobs.brightness), 0, stripWidth, CCW);
+ 
+    setPixelColor(green(knobs.brightness), _ring.halfPixels()-stripWidth, stripWidth+extraPixels);
+    setPixelColor(green(knobs.brightness), _ring.halfPixels()-stripWidth, stripWidth+extraPixels, CCW);
 
     show(knobs.speed);
 }
@@ -1724,7 +1745,7 @@ void Patterns::displayMode(uint8_t mode, unsigned long wait)
 
 // THIS IS CALLED TO INITIALIZE THE RING WHEN HOLDING BOTH BUTTONS down
 // AND TURNING ON THE UNIT.
-uint16_t Patterns::initializeNumPixels(uint8_t value)
+uint16_t Patterns::initializeNumPixels(uint16_t value)
 {
     uint16_t numPixels = min((value<<1), MAX_PIXELS); // Multiples of 2
 
@@ -1740,7 +1761,7 @@ uint16_t Patterns::initializeNumPixels(uint8_t value)
     return numPixels;
 }
 
-uint8_t Patterns::initializeTopCenter(uint8_t value, uint8_t halfPixels)
+uint8_t Patterns::initializeTopCenter(uint16_t value, uint16_t halfPixels)
 {
     uint8_t topCenter = value; // Multiples of 2
 
@@ -1754,7 +1775,7 @@ uint8_t Patterns::initializeTopCenter(uint8_t value, uint8_t halfPixels)
     return topCenter;
 }
 
-uint8_t Patterns::initializeTopQuarter(uint8_t value)
+uint8_t Patterns::initializeTopQuarter(uint16_t value)
 {
     uint8_t topQuarter = value; // Shrink to half.
 

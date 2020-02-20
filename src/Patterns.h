@@ -303,9 +303,9 @@ public:
 
 
     // INITIALIZATION ROUTINES
-    uint16_t initializeNumPixels(uint8_t value);
-    uint8_t initializeTopCenter(uint8_t value, uint8_t halfPixels);
-    uint8_t initializeTopQuarter(uint8_t value);
+    uint16_t initializeNumPixels(uint16_t value);
+    uint8_t initializeTopCenter(uint16_t value, uint16_t halfPixels);
+    uint8_t initializeTopQuarter(uint16_t value);
 
     // STROBE_GROUP
     void strobeGroup();
@@ -326,6 +326,7 @@ public:
     void portugalFlag();
     void rebelFlag();
     void gayPrideFlag();
+    void hungarianFlag();
 
     // RAINBOW_GROUP
     void rainbowGroup();
