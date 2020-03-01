@@ -118,7 +118,7 @@ const uint8_t Patterns::patternCount()
 //             "portugalFlag",
 //             "rebelFlag",
 //             "gayPrideFlag",
-//             "9"
+//             "hungarianFlag"
 //         },
 //         { // RAINBOW_GROUP
 //             "rainbowFadeWave",
@@ -436,14 +436,20 @@ void Patterns::americanFlag()
     uint8_t extraPixels = _ring.topQuarter() % 7;
 
     setPixelColor(red(knobs.brightness), 0, extraPixels, CW);
-    if (extraPixels > 0)
-        setPixelColor(red(knobs.brightness), extraPixels, _ring.topQuarter(), CW, stripWidth*2, stripWidth);
+    setPixelColor(red(knobs.brightness), (extraPixels>0) ? extraPixels : 0, _ring.topQuarter(), CW, stripWidth*2, stripWidth);
 
     // Strips Bottom
     stripWidth = _ring.bottomQuarter() / 6;
 
     setPixelColor(red(knobs.brightness), _ring.topQuarter()+stripWidth, _ring.bottomQuarter()-stripWidth, CW, stripWidth*2, stripWidth);
     setPixelColor(red(knobs.brightness), _ring.topQuarter()+stripWidth, _ring.bottomQuarter()-stripWidth, CCW, stripWidth*2, stripWidth);
+
+    extraPixels = _ring.bottomQuarter() % 6;
+    if (extraPixels>0)
+    {
+        setPixelColor(red(knobs.brightness), _ring.halfPixels()-extraPixels, extraPixels, CW);
+        setPixelColor(red(knobs.brightness), _ring.halfPixels()-extraPixels, extraPixels, CCW);
+    }
 
     // Blue Panel
     setPixelColor(blue(knobs.brightness), 0, _ring.topQuarter(), CCW);
@@ -464,15 +470,15 @@ void Patterns::spainFlag()
     initBrightness();
     initSpeed();
 
-    uint8_t topOffset = _ring.bottomOffset();
+    setRingColor(yellow(knobs.brightness));
 
-    setPixelColor(yellow(knobs.brightness), 0, _ring.halfPixels());
-    setPixelColor(yellow(knobs.brightness), 0, _ring.halfPixels(), CCW);
+    uint16_t bandWidth = _ring.topQuarter() / 2;
+    setPixelColor(red(knobs.brightness), 0, bandWidth);
+    setPixelColor(red(knobs.brightness), 0, bandWidth, CCW);
 
-    setPixelColor(red(knobs.brightness), 0, 12+topOffset);
-    setPixelColor(red(knobs.brightness), 0, 12+topOffset, CCW);
-    setPixelColor(red(knobs.brightness), _ring.halfPixels()-12, 12);
-    setPixelColor(red(knobs.brightness), _ring.halfPixels()-12, 12, CCW);
+    uint16_t nextBand = _ring.topQuarter() + bandWidth;
+    setPixelColor(red(knobs.brightness), nextBand, _ring.halfPixels()-nextBand);
+    setPixelColor(red(knobs.brightness), nextBand, _ring.halfPixels()-nextBand, CCW);
 
     show(knobs.speed);
 }
@@ -482,16 +488,12 @@ void Patterns::italianFlag()
     initBrightness();
     initSpeed();
 
-    uint8_t stripWidth = _ring.halfPixels() / 3;
-    uint8_t extraPixels = _ring.halfPixels() % 3;
+    uint8_t stripWidth = (_ring.topQuarter() / 3) * 2;
 
     setRingColor(white(knobs.brightness/WHITE_DIM_FACTOR));
 
-    setPixelColor(green(knobs.brightness), 0, stripWidth);
-    setPixelColor(green(knobs.brightness), 0, stripWidth, CCW);
- 
-    setPixelColor(red(knobs.brightness), _ring.halfPixels()-stripWidth, stripWidth+extraPixels);
-    setPixelColor(red(knobs.brightness), _ring.halfPixels()-stripWidth, stripWidth+extraPixels, CCW);
+    setPixelColor(green(knobs.brightness), _ring.topQuarter()-stripWidth, stripWidth*2, CCW);
+    setPixelColor(red(knobs.brightness), _ring.topQuarter()-stripWidth, stripWidth*2);
 
     show(knobs.speed);
 }
@@ -501,15 +503,12 @@ void Patterns::mexicanFlag()
     initBrightness();
     initSpeed();
 
-    uint8_t topOffset = _ring.bottomOffset();
+    uint8_t stripWidth = _ring.topQuarter() / 2;
 
-    setPixelColor(red(knobs.brightness), 0, _ring.halfPixels());
-    setPixelColor(green(knobs.brightness), 0, _ring.halfPixels(), CCW);
+    setRingColor(white(knobs.brightness/WHITE_DIM_FACTOR));
 
-    setPixelColor(white(knobs.brightness/WHITE_DIM_FACTOR), 0, 12+topOffset);
-    setPixelColor(white(knobs.brightness/WHITE_DIM_FACTOR), 0, 12+topOffset, CCW);
-    setPixelColor(white(knobs.brightness/WHITE_DIM_FACTOR), _ring.halfPixels()-12, 12);
-    setPixelColor(white(knobs.brightness/WHITE_DIM_FACTOR), _ring.halfPixels()-12, 12, CCW);
+    setPixelColor(green(knobs.brightness), _ring.topQuarter()-stripWidth, stripWidth*2, CCW);
+    setPixelColor(red(knobs.brightness), _ring.topQuarter()-stripWidth, stripWidth*2);
 
     show(knobs.speed);
 }
@@ -519,15 +518,12 @@ void Patterns::frenchFlag()
     initBrightness();
     initSpeed();
 
-    uint8_t topOffset = _ring.bottomOffset();
+    uint8_t stripWidth = (_ring.topQuarter() / 3) * 2;
 
-    setPixelColor(red(knobs.brightness), 0, _ring.halfPixels());
-    setPixelColor(blue(knobs.brightness), 0, _ring.halfPixels(), CCW);
+    setRingColor(white(knobs.brightness/WHITE_DIM_FACTOR));
 
-    setPixelColor(white(knobs.brightness/WHITE_DIM_FACTOR), 0, 12+topOffset);
-    setPixelColor(white(knobs.brightness/WHITE_DIM_FACTOR), 0, 12+topOffset, CCW);
-    setPixelColor(white(knobs.brightness/WHITE_DIM_FACTOR), _ring.halfPixels()-12, 12);
-    setPixelColor(white(knobs.brightness/WHITE_DIM_FACTOR), _ring.halfPixels()-12, 12, CCW);
+    setPixelColor(blue(knobs.brightness), _ring.topQuarter()-stripWidth, stripWidth*2, CCW);
+    setPixelColor(red(knobs.brightness), _ring.topQuarter()-stripWidth, stripWidth*2);
 
     show(knobs.speed);
 }
@@ -537,15 +533,12 @@ void Patterns::canadianFlag()
     initBrightness();
     initSpeed();
 
-    uint8_t topOffset = _ring.bottomOffset();
+    uint8_t stripWidth = _ring.topQuarter() / 2;
 
-    setPixelColor(red(knobs.brightness), 0, _ring.halfPixels());
-    setPixelColor(red(knobs.brightness), 0, _ring.halfPixels(), CCW);
+    setRingColor(white(knobs.brightness/WHITE_DIM_FACTOR));
 
-    setPixelColor(white(knobs.brightness/WHITE_DIM_FACTOR), 0, 12+topOffset);
-    setPixelColor(white(knobs.brightness/WHITE_DIM_FACTOR), 0, 12+topOffset, CCW);
-    setPixelColor(white(knobs.brightness/WHITE_DIM_FACTOR), _ring.halfPixels()-12, 12);
-    setPixelColor(white(knobs.brightness/WHITE_DIM_FACTOR), _ring.halfPixels()-12, 12, CCW);
+    setPixelColor(red(knobs.brightness), _ring.topQuarter()-stripWidth, stripWidth*2, CCW);
+    setPixelColor(red(knobs.brightness), _ring.topQuarter()-stripWidth, stripWidth*2);
 
     show(knobs.speed);
 }
@@ -555,13 +548,10 @@ void Patterns::portugalFlag()
     initBrightness();
     initSpeed();
     
-    uint8_t topOffset = _ring.bottomOffset();
+    uint8_t stripWidth = (_ring.topQuarter() * 2) / 3;
 
-    setPixelColor(red(knobs.brightness), 0, _ring.halfPixels());
-    setPixelColor(green(knobs.brightness), 0, _ring.halfPixels(), CCW);
-
-    setPixelColor(red(knobs.brightness), 0, 12+topOffset, CCW);
-    setPixelColor(red(knobs.brightness), _ring.halfPixels()-12, 12, CCW);
+    setRingColor(red(knobs.brightness));
+    setPixelColor(green(knobs.brightness), _ring.topQuarter()-stripWidth, stripWidth*2, CCW);
 
     show(knobs.speed);
 }
@@ -613,16 +603,15 @@ void Patterns::hungarianFlag()
     initBrightness();
     initSpeed();
 
-    uint8_t stripWidth = _ring.halfPixels() / 3;
-    uint8_t extraPixels = _ring.halfPixels() % 3;
+    setPixelColor(green(knobs.brightness), 0, _ring.topQuarter());
+    setPixelColor(green(knobs.brightness), 0, _ring.topQuarter(), CCW);
 
-    setRingColor(white(knobs.brightness/WHITE_DIM_FACTOR));
+    setPixelColor(red(knobs.brightness), _ring.topQuarter(), _ring.bottomQuarter());
+    setPixelColor(red(knobs.brightness), _ring.topQuarter(), _ring.bottomQuarter(), CCW);
 
-    setPixelColor(red(knobs.brightness), 0, stripWidth);
-    setPixelColor(red(knobs.brightness), 0, stripWidth, CCW);
- 
-    setPixelColor(green(knobs.brightness), _ring.halfPixels()-stripWidth, stripWidth+extraPixels);
-    setPixelColor(green(knobs.brightness), _ring.halfPixels()-stripWidth, stripWidth+extraPixels, CCW);
+    uint8_t stripWidth = _ring.topQuarter() / 3;
+    setPixelColor(white(knobs.brightness/WHITE_DIM_FACTOR), _ring.topQuarter()-stripWidth, stripWidth*2);
+    setPixelColor(white(knobs.brightness/WHITE_DIM_FACTOR), _ring.topQuarter()-stripWidth, stripWidth*2, CCW);
 
     show(knobs.speed);
 }
