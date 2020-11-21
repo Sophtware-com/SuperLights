@@ -8,6 +8,11 @@
 #include "Buzzer.h"
 #include "Menu.h"
 
+//#define BUTTON_NO
+//#define BUTTON_DOWN LOW
+#define BUTTON_NC
+#define BUTTON_DOWN HIGH
+
 // PIN ASSIGNMENTS
 #define PWR_LED_PIN   8
 #define CHRG_LED_PIN  11
@@ -117,7 +122,75 @@ uint8_t nextPattern()
     return (_pattern == _patterns.groupPatternCount((patternGroupType)_group)-1) ? 0 : _pattern + 1;
 }
 
+#if defined(BUTTON_NC)
+
 // ISR's
+void groupButtonRisingISR()
+{
+    // Catch the time when the button was pushed.
+    _groupButtonPushedTime = millis();
+
+    // Attach interrupt to catch when the button is released.
+    attachInterrupt(digitalPinToInterrupt(GROUP_BUTTON_PIN), groupButtonFallingISR, FALLING);
+}
+
+void groupButtonFallingISR()
+{
+    if (_groupButtonPushedTime != 0)
+    {
+        unsigned long buttonReleasedTime = millis();
+
+        // Quick push
+        if (buttonReleasedTime - _groupButtonPushedTime < BUTTON_LONG_PUSH)
+        {
+            _group = nextGroup();
+        }
+        else  // 2s buton push resets back to 0.
+        {
+            _group = 0;
+
+            // Also loop the patterns back to the beginning when resetting group.
+            if (_mode == MODE_CONTINUOUS)
+                _pattern = 0;
+        }
+
+        _groupButtonBeep = false;
+        _groupButtonPushedTime = 0;
+    }
+
+    attachInterrupt(digitalPinToInterrupt(GROUP_BUTTON_PIN), groupButtonRisingISR, RISING);
+}
+
+void patternButtonRisingISR()
+{
+    _patternButtonPushedTime = millis();
+    attachInterrupt(digitalPinToInterrupt(PATTERN_BUTTON_PIN), patternButtonFallingISR, FALLING);
+}
+
+void patternButtonFallingISR()
+{
+    if (_patternButtonPushedTime != 0)
+    {
+        unsigned long buttonReleasedTime = millis();
+
+        if (buttonReleasedTime - _patternButtonPushedTime < BUTTON_LONG_PUSH)
+        {
+            _pattern = nextPattern();
+        }
+        else
+        {
+            _pattern = 0;
+        }
+
+        _patternButtonBeep = false;
+        _patternButtonPushedTime = 0;
+    }
+
+    attachInterrupt(digitalPinToInterrupt(PATTERN_BUTTON_PIN), patternButtonRisingISR, RISING);
+}
+
+#else
+
 void groupButtonFallingISR()
 {
     // Catch the time when the button was pushed.
@@ -182,9 +255,11 @@ void patternButtonRisingISR()
     attachInterrupt(digitalPinToInterrupt(PATTERN_BUTTON_PIN), patternButtonFallingISR, FALLING);
 }
 
+#endif
+
 bool bothButtonsHeld()
 {
-    return digitalRead(GROUP_BUTTON_PIN) == LOW && digitalRead(PATTERN_BUTTON_PIN) == LOW;
+    return digitalRead(GROUP_BUTTON_PIN) == BUTTON_DOWN && digitalRead(PATTERN_BUTTON_PIN) == BUTTON_DOWN;
 }
 
 void setup()
@@ -264,12 +339,12 @@ void setup()
             _mode = MODE_STROBES;
         }
     }
-    else if (digitalRead(GROUP_BUTTON_PIN) == LOW)    // pG-?X?, where X is between 3 and 15 seconds
+    else if (digitalRead(GROUP_BUTTON_PIN) == BUTTON_DOWN)    // pG-?X?, where X is between 3 and 15 seconds
     {
         _mode = MODE_FAVORITES ;
         _cycleDelayMS = map(speedPos, 0, _speed.maxValue(), 3, 15) * 1000;
     } 
-    else if (digitalRead(PATTERN_BUTTON_PIN) == LOW) // Pg-?X?, where X is between 3 and 15 seconds
+    else if (digitalRead(PATTERN_BUTTON_PIN) == BUTTON_DOWN) // Pg-?X?, where X is between 3 and 15 seconds
     {
         _mode = MODE_RANDOM;
         _cycleDelayMS = map(speedPos, 0, _speed.maxValue(), 3, 15) * 1000;
@@ -315,9 +390,16 @@ void setup()
         delay(200);
     }
 
+#if defined(BUTTON_NC)
+
+    // Attach the button interrupts.
+    attachInterrupt(digitalPinToInterrupt(GROUP_BUTTON_PIN), groupButtonRisingISR, RISING);
+    attachInterrupt(digitalPinToInterrupt(PATTERN_BUTTON_PIN), patternButtonRisingISR, RISING);
+#else
     // Attach the button interrupts.
     attachInterrupt(digitalPinToInterrupt(GROUP_BUTTON_PIN), groupButtonFallingISR, FALLING);
     attachInterrupt(digitalPinToInterrupt(PATTERN_BUTTON_PIN), patternButtonFallingISR, FALLING);
+#endif
 
     _groupButtonPushedTime = 0;
     _patternButtonPushedTime = 0;

@@ -5,7 +5,7 @@
 #include "RingConfig.h"
 
 #if defined(ARDUINO_AVR_NANO_EVERY)
-    #define MAX_PIXELS  300     // The total number of pixels supported.
+    #define MAX_PIXELS  336     // The total number of pixels supported.
                                 // TODO: Need to make sure no buffer overruns
                                 // a the MAX size.
 #else
