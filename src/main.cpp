@@ -8,10 +8,10 @@
 #include "Buzzer.h"
 #include "Menu.h"
 
-//#define BUTTON_NO
-//#define BUTTON_DOWN LOW
-#define BUTTON_NC
-#define BUTTON_DOWN HIGH
+#define BUTTON_NO
+#define BUTTON_DOWN LOW
+//#define BUTTON_NC
+//#define BUTTON_DOWN HIGH
 
 // PIN ASSIGNMENTS
 #define PWR_LED_PIN   8

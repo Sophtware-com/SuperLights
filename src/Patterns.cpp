@@ -4,7 +4,11 @@ Patterns _patterns(MAX_PIXELS, LED_RING_PIN);
 
 int _cycleDelayMS = 8000;
 
-#define WHITE_DIM_FACTOR 3
+#ifdef SK6812_LEDS
+    #define WHITE_DIM_FACTOR 1
+#else
+    #define WHITE_DIM_FACTOR 3
+#endif
 
 //
 // GROUP & PATTERN INITI
@@ -1858,11 +1862,12 @@ uint32_t Patterns::adjustBrightness(uint32_t color, uint8_t brightness)
     // Allow for FULL brightness.
     scale = (scale >= 0.95) ? 1.0 : scale;
 
+    uint8_t w = (color >> 24) & 0xFF;
     uint8_t r = (color >> 16) & 0xFF;
     uint8_t g = (color >> 8) & 0xFF;
     uint8_t b = color & 0xFF;
 
-    return rgbColor(r*scale, g*scale, b*scale);
+    return rgbColor(r*scale, g*scale, b*scale, w*scale);
 }
 
 uint32_t Patterns::scaleBrightness(uint32_t color, float percentage)
@@ -1872,11 +1877,12 @@ uint32_t Patterns::scaleBrightness(uint32_t color, float percentage)
 
     float scale = 1.0 - percentage;
 
+    uint8_t w = (color >> 24) & 0xFF;
     uint8_t r = (color >> 16) & 0xFF;
     uint8_t g = (color >> 8) & 0xFF;
     uint8_t b = color & 0xFF;
 
-    return rgbColor(r*scale, g*scale, b*scale);
+    return rgbColor(r*scale, g*scale, b*scale, w*scale);
 }
 
 void Patterns::fadeToBlack(uint16_t absolutePos, float percentage) 

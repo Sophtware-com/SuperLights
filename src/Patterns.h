@@ -16,6 +16,10 @@
 
 #define CYCLE_DELAY_SECONDS 8 // How long each pattern displays in a cycle mode.
 
+// Define the type of LED strips you are using here.
+//#define WS2812_LEDS
+#define SK6812_LEDS
+
 //#define TIME_UNIT 120
 
 enum patternGroupType
@@ -32,16 +36,6 @@ enum patternGroupType
     RANDOM_PATTERN_GROUP,
     NUMBER_OF_GROUPS
 };
-
-
-// Parameter 1 = number of pixels in strip
-// Parameter 2 = Arduino pin number (most are valid)
-// Parameter 3 = pixel type FLAGS_GROUP, add together as needed:
-//   NEO_KHZ800  800 KHz bitstream (most NeoPixel products w/WS2812 LEDs)
-//   NEO_KHZ400  400 KHz (classic 'v1' (not v2) FLORA pixels, WS2811 drivers)
-//   NEO_GRB     Pixels are wired for GRB bitstream (most NeoPixel products)
-//   NEO_RGB     Pixels are wired for RGB bitstream (v1 FLORA pixels, not v2)
-//   NEO_RGBW    Pixels are wired for RGBW bitstream (NeoPixel RGBW products)
 
 struct cometPoint
 {
@@ -129,7 +123,20 @@ class Patterns
     fireFly flies[16];
 
 public:
-    Patterns(uint16_t ledCount, uint8_t pin) : mLeds(ledCount, pin, NEO_GRB + NEO_KHZ800)
+    // Parameter 1 = number of pixels in strip
+    // Parameter 2 = Arduino pin number (most are valid)
+    // Parameter 3 = pixel type FLAGS_GROUP, add together as needed:
+    //   NEO_KHZ800  800 KHz bitstream (most NeoPixel products w/WS2812 LEDs)
+    //   NEO_KHZ400  400 KHz (classic 'v1' (not v2) FLORA pixels, WS2811 drivers)
+    //   NEO_GRB     Pixels are wired for GRB bitstream (most NeoPixel products)
+    //   NEO_RGB     Pixels are wired for RGB bitstream (v1 FLORA pixels, not v2)
+    //   NEO_RGBW    Pixels are wired for RGBW bitstream (NeoPixel RGBW products)
+    Patterns(uint16_t ledCount, uint8_t pin) : 
+#ifdef SK6812_LEDS
+        mLeds(ledCount, pin, NEO_GRBW + NEO_KHZ800)
+#else
+        mLeds(ledCount, pin, NEO_GRB + NEO_KHZ800)
+#endif
     {
         mLeds.begin();
 
@@ -199,7 +206,8 @@ public:
     // NeoPixel shortcuts
     inline void clear(bool init=false) { mLeds.clear(); mInit = init; }
     inline void show(unsigned long wait = 0) { mLeds.show(); delay(wait); }
-    inline uint32_t rgbColor(uint8_t r, uint8_t g, uint8_t b) { return mLeds.Color(r,g,b); };
+
+    inline uint32_t rgbColor(uint8_t r, uint8_t g, uint8_t b, uint8_t w = 0) { return mLeds.Color(r,g,b,w); };
     inline void setBrightness(uint8_t brightness) { mLeds.setBrightness(brightness); }
  
     inline void setPixelColorAbs(uint16_t absolutePos, uint32_t color) { mLeds.setPixelColor(absolutePos, color); }
@@ -263,8 +271,12 @@ public:
 
     // BASIC COLORS
     inline uint32_t black() { return 0; }
+#ifdef SK6812_LEDS
+    inline uint32_t white(uint8_t brightness=255) { return adjustBrightness(mLeds.Color(0,0,0,255), brightness); }
+#else
     inline uint32_t white(uint8_t brightness=70) { return adjustBrightness(mLeds.Color(255,255,255), brightness); }
-
+#endif
+    
     // Color helpers.
     inline uint32_t red(uint8_t brightness=255) { return adjustBrightness(mLeds.Color(255,0,0), brightness); }
     inline uint32_t orange(uint8_t brightness=255) { return toColor(11, brightness); }
