@@ -7,6 +7,6 @@
 #define SK6812_LEDS
 
 #define USING_STROBE
-#define STROBE_LEN 18
+#define STROBE_LEN 28
 
 #define ENABLE_CHARGING
