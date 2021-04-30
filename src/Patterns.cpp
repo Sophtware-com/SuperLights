@@ -328,6 +328,7 @@ void Patterns::doubleStrobe()
     {
         uint16_t len = map(knobs.size, 0, _speed.maxValue(), 1, _ring.halfPixels());
 
+        setStrobeColor(white(knobs.brightness));
         setPixelColor(white(knobs.brightness), 0, len);
         setPixelColor(white(knobs.brightness), 0, len, CCW);
         show(50);
@@ -361,11 +362,13 @@ void Patterns::aircraftStrobe()
         uint16_t topOffset = _ring.bottomOffset();
         uint16_t size = map(knobs.size, 0, _speed.maxValue(), 6, 54);
     
+        setStrobeColor(white(knobs.brightness));
         setPixelColor(white(knobs.brightness), 0, size+topOffset);
         setPixelColor(white(knobs.brightness), 0, size+topOffset, CCW);
         setPixelColor(white(knobs.brightness), _ring.halfPixels()-size, size);
         setPixelColor(white(knobs.brightness), _ring.halfPixels()-size, size, CCW);
         show(50);
+        setStrobeColor(black());
         setPixelColor(black(), 0, size+topOffset);
         setPixelColor(black(), 0, size+topOffset, CCW);
         setPixelColor(black(), _ring.halfPixels()-size, size);
@@ -383,13 +386,35 @@ void Patterns::landingLights()
     initBrightness();
     initSize();
 
-    uint16_t size = map(knobs.size, 0, _speed.maxValue(), 0, _ring.halfPixels());
-    
-    clear();
-    setPixelColor(white(knobs.brightness), size, _ring.halfPixels(), CW, 1, 1, true);
-    setPixelColor(white(knobs.brightness), size, _ring.halfPixels(), CCW, 1, 1, true);
+    if (isFirstFrame())
+    {
+        mFrame.maxFrames = 10;
+        mFrame.currentFrame = 0;
+    }
 
-    show(100);
+    nextFrame();
+
+    uint16_t len = map(knobs.size, 0, _speed.maxValue(), 1, _ring.halfPixels());
+
+    if (mFrame.currentFrame < 3)
+    {
+        setStrobeColor(white(knobs.brightness));
+        setPixelColor(white(knobs.brightness), len, _ring.halfPixels(), CW, 1, 1, true);
+        setPixelColor(white(knobs.brightness), len, _ring.halfPixels(), CCW, 1, 1, true);
+        show(50);
+        clear();
+        setPixelColor(white(knobs.brightness), len, _ring.halfPixels(), CW, 1, 1, true);
+        setPixelColor(white(knobs.brightness), len, _ring.halfPixels(), CCW, 1, 1, true);
+        show(50);
+    }
+    else
+    {
+        clear();
+        setPixelColor(white(knobs.brightness), len, _ring.halfPixels(), CW, 1, 1, true);
+        setPixelColor(white(knobs.brightness), len, _ring.halfPixels(), CCW, 1, 1, true);
+
+        show(100);
+    }
 }
 
 //
@@ -431,6 +456,14 @@ void Patterns::americanFlag()
 {
     initBrightness();
     initSpeed();
+
+    // S T R O B E
+    uint8_t bar  = _strobe.thirdPixels();
+    setStrobePixelColorAbs(red(knobs.brightness), bar*0, bar);
+    setStrobePixelColorAbs(white(knobs.brightness), bar*1, bar);
+    setStrobePixelColorAbs(blue(knobs.brightness), bar*2, _strobe.lastPixel(), 1, 1, true);
+
+    // R I N G
 
     // ALL WHITE STRIPES
     setRingColor(white(knobs.brightness/WHITE_DIM_FACTOR));
@@ -474,6 +507,13 @@ void Patterns::spainFlag()
     initBrightness();
     initSpeed();
 
+    // S T R O B E
+    uint8_t bar  = _strobe.quarterPixels();
+    setStrobePixelColorAbs(red(knobs.brightness), bar*0, bar);
+    setStrobePixelColorAbs(yellow(knobs.brightness), bar*1, bar*2);
+    setStrobePixelColorAbs(red(knobs.brightness), bar*3, _strobe.lastPixel(), 1, 1, true);
+
+    // R I N G
     setRingColor(yellow(knobs.brightness));
 
     uint16_t bandWidth = _ring.topQuarter() / 2;
@@ -492,6 +532,12 @@ void Patterns::italianFlag()
     initBrightness();
     initSpeed();
 
+    // S T R O B E
+    uint8_t bar  = _strobe.quarterPixels();
+    setStrobePixelColorAbs(green(knobs.brightness), bar*0, bar);
+    setStrobePixelColorAbs(white(knobs.brightness), bar*1, bar*2);
+    setStrobePixelColorAbs(red(knobs.brightness), bar*3, _strobe.lastPixel(), 1, 1, true);
+
     uint8_t stripWidth = (_ring.topQuarter() / 3) * 2;
 
     setRingColor(white(knobs.brightness/WHITE_DIM_FACTOR));
@@ -506,6 +552,12 @@ void Patterns::mexicanFlag()
 {
     initBrightness();
     initSpeed();
+
+    // S T R O B E
+    uint8_t bar  = _strobe.quarterPixels();
+    setStrobePixelColorAbs(green(knobs.brightness), bar*0, bar);
+    setStrobePixelColorAbs(white(knobs.brightness), bar*1, bar*2);
+    setStrobePixelColorAbs(red(knobs.brightness), bar*3, _strobe.lastPixel(), 1, 1, true);
 
     uint8_t stripWidth = _ring.topQuarter() / 2;
 
@@ -522,6 +574,12 @@ void Patterns::frenchFlag()
     initBrightness();
     initSpeed();
 
+    // S T R O B E
+    uint8_t bar  = _strobe.quarterPixels();
+    setStrobePixelColorAbs(blue(knobs.brightness), bar*0, bar);
+    setStrobePixelColorAbs(white(knobs.brightness), bar*1, bar*2);
+    setStrobePixelColorAbs(red(knobs.brightness), bar*3, _strobe.lastPixel(), 1, 1, true);
+
     uint8_t stripWidth = (_ring.topQuarter() / 3) * 2;
 
     setRingColor(white(knobs.brightness/WHITE_DIM_FACTOR));
@@ -537,6 +595,12 @@ void Patterns::canadianFlag()
     initBrightness();
     initSpeed();
 
+    // S T R O B E
+    uint8_t bar  = _strobe.quarterPixels();
+    setStrobePixelColorAbs(red(knobs.brightness), bar*0, bar);
+    setStrobePixelColorAbs(white(knobs.brightness), bar*1, bar*2);
+    setStrobePixelColorAbs(red(knobs.brightness), bar*3, _strobe.lastPixel(), 1, 1, true);
+
     uint8_t stripWidth = _ring.topQuarter() / 2;
 
     setRingColor(white(knobs.brightness/WHITE_DIM_FACTOR));
@@ -551,6 +615,11 @@ void Patterns::portugalFlag()
 {
     initBrightness();
     initSpeed();
+
+    // S T R O B E
+    uint8_t bar  = _strobe.thirdPixels();
+    setStrobePixelColorAbs(red(knobs.brightness), bar*0, bar);
+    setStrobePixelColorAbs(yellow(knobs.brightness), bar*1, _strobe.lastPixel(), 1, 1, true);
     
     uint8_t stripWidth = (_ring.topQuarter() * 2) / 3;
 
@@ -564,6 +633,12 @@ void Patterns::rebelFlag()
 {
     initBrightness();
     initSpeed();
+
+    // S T R O B E
+    uint8_t bar  = _strobe.thirdPixels();
+    setStrobePixelColorAbs(red(knobs.brightness), bar*0, bar);
+    setStrobePixelColorAbs(white(knobs.brightness), bar*1, bar);
+    setStrobePixelColorAbs(blue(knobs.brightness), bar*2, _strobe.lastPixel(), 1, 1, true);
 
     setRingColor(red(knobs.brightness));
 
@@ -582,6 +657,15 @@ void Patterns::gayPrideFlag()
 {
     initBrightness();
     initSpeed();
+
+    // S T R O B E
+    uint8_t strobeStrip = _strobe.numPixels() / 6;
+    setStrobePixelColorAbs(red(knobs.brightness), strobeStrip*0, strobeStrip);
+    setStrobePixelColorAbs(orange(knobs.brightness), strobeStrip*1, strobeStrip);
+    setStrobePixelColorAbs(yellow(knobs.brightness), strobeStrip*2, strobeStrip);
+    setStrobePixelColorAbs(green(knobs.brightness), strobeStrip*3, strobeStrip);
+    setStrobePixelColorAbs(blue(knobs.brightness), strobeStrip*4, strobeStrip);
+    setStrobePixelColorAbs(violet(knobs.brightness), strobeStrip*5, _strobe.lastPixel(), 1, 1, true);
 
     // STRIPS
     uint8_t stripWidth = _ring.halfPixels() / 6;
@@ -606,6 +690,9 @@ void Patterns::hungarianFlag()
 {
     initBrightness();
     initSpeed();
+
+    // S T R O B E
+    setStrobeColor(green(knobs.brightness));
 
     setPixelColor(green(knobs.brightness), 0, _ring.topQuarter());
     setPixelColor(green(knobs.brightness), 0, _ring.topQuarter(), CCW);
@@ -663,7 +750,15 @@ void Patterns::rainbowFadeWave()
     for (uint16_t i=0; i<_ring.halfPixels(); i++)
     {
         setPixelColor(toColor(c, knobs.brightness), i, 1, CW);
-        setPixelColor(toColor(c++, knobs.brightness), i, 1, CCW);
+        setPixelColor(toColor(c, knobs.brightness), i, 1, CCW);
+
+        if (i < _strobe.numPixels())
+        {
+            setStrobePixelColor(toColor(c, knobs.brightness), i, 1, CW);
+            setStrobePixelColor(toColor(c, knobs.brightness), i, 1, CCW);
+        }
+
+        c++;
     }
 
     mFrame.color += 5;
@@ -679,7 +774,10 @@ void Patterns::rainbowFade()
     if (isFirstFrame())
         mFrame.color = 0;
 
-    setRingColor(toColor(mFrame.color++, knobs.brightness));
+    setRingColor(toColor(mFrame.color, knobs.brightness));
+    setStrobeColor(toColor(mFrame.color, knobs.brightness));
+
+    mFrame.color++;
 
     show(knobs.speed);
 }
@@ -699,7 +797,15 @@ void Patterns::rainbowTheaterWave()
     for (uint16_t i=0; i<_ring.halfPixels(); i+=3)
     {
         setPixelColor(toColor(c, knobs.brightness), i+mFrame.offset, 1, CW);
-        setPixelColor(toColor(c++, knobs.brightness), i+mFrame.offset, 1, CCW);
+        setPixelColor(toColor(c, knobs.brightness), i+mFrame.offset, 1, CCW);
+
+        if (i < _strobe.numPixels())
+        {
+            setStrobePixelColor(toColor(c, knobs.brightness), i+mFrame.offset, 1, CW);
+            setStrobePixelColor(toColor(c, knobs.brightness), i+mFrame.offset, 1, CCW);
+        }
+
+        c++;
     }
 
     show(knobs.speed);
@@ -722,6 +828,9 @@ void Patterns::rainbowTheater()
 
     setPixelColor(toColor(mFrame.color, knobs.brightness), mFrame.position, _ring.halfPixels(), CW, 3);
     setPixelColor(toColor(mFrame.color, knobs.brightness), mFrame.position, _ring.halfPixels(), CCW, 3);
+
+    setStrobePixelColor(toColor(mFrame.color, knobs.brightness), mFrame.position, _strobe.halfPixels(), CW, 3);
+    setStrobePixelColor(toColor(mFrame.color, knobs.brightness), mFrame.position, _strobe.halfPixels(), CCW, 3);
 
     show(knobs.speed);
     clear();
@@ -892,12 +1001,18 @@ void Patterns::fireFlies()
         if (flies[j].brightness == 0)
         {
             setPixelColor(black(), flies[j].position);
+            
+            if (flies[j].position < _strobe.numPixels())
+                setStrobePixelColor(black(), flies[j].position);
 
             flies[j].position = random(_ring.numPixels());
             flies[j].brightness = 16;
         }
 
         setPixelColor(toColor(knobs.color, (flies[j].brightness*flies[j].brightness)-1, true), flies[j].position);
+    
+        if (flies[j].position < _strobe.numPixels())
+            setStrobePixelColor(toColor(knobs.color, (flies[j].brightness*flies[j].brightness)-1, true), flies[j].position);
     }
 
     show(knobs.speed);
@@ -911,6 +1026,8 @@ void Patterns::randomPixels()
 
     for (uint16_t i=0; i<_ring.numPixels(); i++)
         setPixelColor((uint32_t)(random(0, 100) > 70 ? toColor(knobs.color, knobs.brightness, true) : 0), i);
+    for (uint16_t i=0; i<_strobe.numPixels(); i++)
+        setStrobePixelColor((uint32_t)(random(0, 100) > 70 ? toColor(knobs.color, knobs.brightness, true) : 0), i);
 
     show(knobs.speed);
 }
@@ -925,6 +1042,7 @@ void Patterns::flickerColor()
     if (random(0, mFrame.brightness) < 10)
     {
         setRingColor(toColor(knobs.color, mFrame.brightness, true));
+        setStrobeColor(toColor(knobs.color, mFrame.brightness, true));
 
         show(mFrame.speed);
     }
@@ -937,7 +1055,10 @@ void Patterns::solidColor()
     initColor();
 
     if (twinkle() || knobs.speed < 5)
+    {
         setRingColor(toColor(knobs.color, knobs.brightness, true));
+        setStrobeColor(toColor(knobs.color, knobs.brightness, true));
+    }
     else
         clear();
 
@@ -956,8 +1077,10 @@ void Patterns::starBurst()
     for (int tail=16; tail>=1; tail--)
     {
         lastPixel = loop(mFrame.position, tail, _ring.numPixels());
-
         setPixelColor(toColor(knobs.color, (tail*tail)-1, true), lastPixel);
+
+        lastPixel = loop(mFrame.position, tail, _strobe.numPixels());
+        setStrobePixelColor(toColor(knobs.color, (tail*tail)-1, true), lastPixel);
     }
 
     show(knobs.speed);
@@ -1037,6 +1160,7 @@ void Patterns::nightRider(uint8_t color, bool useWhite)
     static uint16_t lastPixel = _ring.halfPixels() - 1;
 
     setRingColor(toOppositeColor(color, 9, useWhite));
+    setStrobeColor(toOppositeColor(color, 9, useWhite));
 
     for (int i=0; i<mPoints; i++)
     {
@@ -1057,6 +1181,7 @@ void Patterns::quadRider(uint8_t color, bool useWhite)
     static uint16_t lastPixel = _ring.quarterPixels() - 1;
 
     setRingColor(toOppositeColor(color, 9, useWhite));
+    setStrobeColor(toOppositeColor(color, 9, useWhite));
 
     for (int i=0; i<mPoints; i++)
     {
@@ -1238,6 +1363,9 @@ void Patterns::stripedLights(uint32_t colors[], uint16_t colorCount)
 
             setPixelColor(colors[i], start, _ring.halfPixels(), CW, blockSize, stripeSize, true);
             setPixelColor(colors[i], start, _ring.halfPixels(), CCW, blockSize, stripeSize, true);
+
+            setStrobePixelColor(colors[i], start, _strobe.halfPixels(), CW, blockSize, stripeSize, true);
+            setStrobePixelColor(colors[i], start, _strobe.halfPixels(), CCW, blockSize, stripeSize, true);
         }        
 
         if (mFrame.offset % stripeSize)
@@ -1246,6 +1374,9 @@ void Patterns::stripedLights(uint32_t colors[], uint16_t colorCount)
 
             setPixelColor(colorSpan, 0, (mFrame.offset % stripeSize));
             setPixelColor(colorSpan, 0, (mFrame.offset % stripeSize), CCW);
+
+            setStrobePixelColor(colorSpan, 0, (mFrame.offset % stripeSize));
+            setStrobePixelColor(colorSpan, 0, (mFrame.offset % stripeSize), CCW);
         }
 
         mFrame.offset = inc(mFrame.offset, blockSize);
@@ -1257,6 +1388,8 @@ void Patterns::stripedLights(uint32_t colors[], uint16_t colorCount)
         // No stripes, just random pixels using the colors.
         for (uint16_t i=0; i<_ring.numPixels(); i++)
             setPixelColorAbs(i, colors[random(0,colorCount)]);
+        for (uint16_t i=0; i<_strobe.numPixels(); i++)
+            setStrobePixelColorAbs(i, colors[random(0,colorCount)]);
 
         show(knobs.speed);
     }
@@ -1290,6 +1423,34 @@ void Patterns::setPixelColor(uint32_t color, uint16_t pos, uint16_t len, Directi
     }
 }
 
+void Patterns::setStrobePixelColor(uint32_t color, uint16_t pos, uint16_t len, DirectionType dir, uint16_t skipLen, uint16_t pixelLen, bool isEnd)
+{
+    // Can set one pixel's color
+    // EXAMPLE:
+    // pos=0, len=1 (default), skipLen=1 (default), pixelLen=1 (default).
+    // |*-------------
+
+    // Can set a length of pixels color from 'pos' to 'len-1'
+    // EXAMPLE:
+    // pos=0, len=4, skipLen=1 (default), pixelLen=1 (default).
+    // |****----------
+
+    // Can set a length of pixels skiping over 'skipLen' and only coloring the first 'pixelLen' from 'pos' to 'len-1'.
+    // EAXMPLE:
+    // pos=0, len=21, skipLen=5, pixelLen=2.
+    // |**---|**---|**---|*
+    
+    uint16_t end = (isEnd) ? len : pos+len;
+
+    for (uint16_t i=pos; i<end; i+=skipLen)
+    {
+        for (uint16_t j=i; j<min(i+pixelLen, end); j++)
+        {
+            setStrobePixelColorAbs(_strobe.pixel(j, dir), color);
+        }
+    }
+}
+
 void Patterns::setPixelColorAbs(uint32_t color, uint16_t pos, uint16_t len, uint16_t skipLen, uint16_t pixelLen, bool isEnd)
 {
     uint16_t end = (isEnd) ? len : pos+len;
@@ -1301,6 +1462,21 @@ void Patterns::setPixelColorAbs(uint32_t color, uint16_t pos, uint16_t len, uint
             setPixelColorAbs(j, color);
         }
     }
+}
+
+void Patterns::setStrobePixelColorAbs(uint32_t color, uint16_t pos, uint16_t len, uint16_t skipLen, uint16_t pixelLen, bool isEnd)
+{
+#ifdef USING_STROBE    
+    uint16_t end = (isEnd) ? len : pos+len;
+
+    for (uint16_t i=pos; i<end; i+=skipLen)
+    {
+        for (uint16_t j=i; j<min(i+pixelLen, end); j++)
+        {
+            setStrobePixelColorAbs(j, color);
+        }
+    }
+#endif
 }
 
 
@@ -1331,6 +1507,8 @@ void Patterns::festiveLights()
 
     for (uint16_t i=0; i<_ring.numPixels(); i++)
         setPixelColor((uint32_t)(random(0, 100) > color ? toColor(random(1, 255), knobs.brightness) : 0), i);
+    for (uint16_t i=0; i<_strobe.numPixels(); i++)
+        setStrobePixelColor((uint32_t)(random(0, 100) > color ? toColor(random(1, 255), knobs.brightness) : 0), i);
 
     show(knobs.speed);
 }
@@ -1510,9 +1688,15 @@ void Patterns::redBlueHalfRingFlash()
     clear();
 
     if (twinkle())
+    {
         setPixelColor(red(knobs.brightness), 0, _ring.halfPixels());
+        setStrobePixelColor(red(knobs.brightness), 0, _strobe.halfPixels());
+    }
     else
+    {
         setPixelColor(blue(knobs.brightness), 0, _ring.halfPixels(), CCW);
+        setStrobePixelColor(blue(knobs.brightness), 0, _strobe.halfPixels(), CCW);
+    }
 
     show(knobs.speed);
 }
@@ -1537,6 +1721,8 @@ void Patterns::redBlueHalfRingCrawl()
         {
             setPixelColor(red(knobs.brightness), 0, size);
             setPixelColor(blue(knobs.brightness), 0, size, CCW);
+            setStrobePixelColor(red(knobs.brightness), 0, _strobe.halfPixels());
+            setStrobePixelColor(blue(knobs.brightness), 0, _strobe.halfPixels(), CCW);
             show(50);
             clear();
             show(50);
@@ -1700,6 +1886,7 @@ void Patterns::ledTest(uint8_t wait)
     for (int i=0; i<4; i++)
     {
         setRingColor(primaryColor(i,(i<3) ? 255 : 60));
+        setStrobeColor(primaryColor(i,(i<3) ? 255 : 60));
         show(wait);
     }
 
@@ -1712,6 +1899,7 @@ void Patterns::displayInit()
     for (int i=0; i<4; i++)
     {
         setRingColor(red());
+        setStrobeColor(red());
         show(100);
         clear();
         show(100);
@@ -1789,9 +1977,15 @@ void Patterns::setRingColor(uint32_t color)
     setPixelColor(color, 0, _ring.numPixels());
 }
 
+void Patterns::setStrobeColor(uint32_t color)
+{
+    setStrobePixelColorAbs(color, 0, STROBE_LEN);
+}
+
 void Patterns::flash(uint8_t wait, uint32_t color)
 {
     setRingColor(color);
+    setStrobeColor(color);
     show(wait);
     clear();
     show(wait);

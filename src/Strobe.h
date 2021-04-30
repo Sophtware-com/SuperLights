@@ -1,41 +1,11 @@
-#ifndef RING_H
-#define RING_H
+#ifndef STROBE_H
+#define STROBE_H
 
 #include <Arduino.h>
 #include "RingConfig.h"
+#include "global.h"
 
-#if defined(ARDUINO_AVR_NANO_EVERY)
-    #define MAX_PIXELS  336     // The total number of pixels supported.
-                                // TODO: Need to make sure no buffer overruns
-                                // a the MAX size.
-#else
-    #define MAX_PIXELS  240     // The total number of pixels supported.
-                                // TODO: Need to make sure no buffer overruns
-                                // a the MAX size.
-#endif
-
-// For patterned LED displays, the more 'divisors' a strand of LEDs has
-// the easier it is for Super Lights to map that pattern to the strand.
-
-// Size of a PPC cage ring.
-// 312 has 16 divisors: 1 2 3 4 6 8 12 13 24 26 39 52 78 104 156 312
-
-// 5 Meters of LEDs
-// 300 18 divisors: 1 2 3 4 5 6 10 12 15 20 25 30 50 60 75 100 150 300
-
-// 4 Meters of LEDs (the standard length we sell)
-// 240 has 20 divisors: 1 2 3 4 5 6 8 10 12 15 16 20 24 30 40 48 60 80 120 240
-
-// 2 Meters of LEDs
-// 180 has 18 divisors: 1 2 3 4 5 6 9 10 12 15 18 20 30 36 45 60 90 180
-
-
-
-// Define a direction type for the strips and ring. This allows us to use
-// a direction like Clock Wise (CW) or Counter Clock Wise (CCW) when referring
-// to which way to compute a pixel offset.
-
-class Ring
+class Strobe
 {
 private:
 
@@ -43,22 +13,16 @@ private:
     uint16_t mLastPixel;
     uint16_t mHalfPixels;
     uint16_t mQuarterPixels;
+    uint16_t mThirdPixels;
 
 public:
-    Ring() 
+    Strobe() 
     {
-        mNumPixels = MAX_PIXELS;
-        mLastPixel = MAX_PIXELS - 1;
-        mHalfPixels = MAX_PIXELS / 2;
-        mQuarterPixels = MAX_PIXELS / 4;
-    }
-
-    void begin()
-    {
-        mNumPixels = _ringConfig.numPixels();
-        mLastPixel = _ringConfig.numPixels() - 1;
-        mHalfPixels = _ringConfig.numPixels() / 2;
-        mQuarterPixels = _ringConfig.numPixels() / 4;
+        mNumPixels = STROBE_LEN;
+        mLastPixel = STROBE_LEN - 1;
+        mHalfPixels = STROBE_LEN / 2;
+        mQuarterPixels = STROBE_LEN / 4;
+        mThirdPixels = STROBE_LEN / 3;
     }
 
     // Computes the number of pixels on the cage ring.
@@ -69,12 +33,12 @@ public:
 
     inline uint16_t topCenter()
     {
-        return _ringConfig.topCenter();
+        return STROBE_LEN / 2;
     }
 
     inline uint16_t topQuarter()
     {
-        return _ringConfig.topQuarter();
+        return STROBE_LEN / 4;
     }
 
     inline DirectionType ringDirection()
@@ -108,6 +72,11 @@ public:
         return mQuarterPixels;
     }
 
+    inline uint16_t thirdPixels()
+    {
+        return mThirdPixels;
+    }
+
     inline uint16_t incPixel(uint16_t pos)
     {
         return (pos == mLastPixel) ? 0 : pos + 1;
@@ -133,6 +102,6 @@ public:
     //uint16_t oppositePixel(uint16_t pos);
 };
 
-extern Ring _ring;
+extern Strobe _strobe;
 
-#endif // RING_H
+#endif // STROBE_H

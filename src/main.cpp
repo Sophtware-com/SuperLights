@@ -280,6 +280,7 @@ void setup()
     _buzzer.begin();
 
     // Are we in CHARGING mode...
+#ifdef ENABLE_CHARGING
     if (digitalRead(PWR_EN_PIN) == LOW)
     {
         digitalWrite(PWR_LED_PIN, LOW);
@@ -297,6 +298,7 @@ void setup()
         }
     }
     else
+#endif
     {
         digitalWrite(PWR_LED_PIN, HIGH);
     }

@@ -8,17 +8,14 @@
 #include "SensorRead.h"
 #include "Menu.h"
 #include "Ring.h"
+#include "Strobe.h"
 
 #define LED_RING_PIN 7
-#define LED_STAR_PIN 4
+#define LED_STROBE_PIN 5
 
 #define TO_WHITE 253 // toColor/toRainbow/rainbowColor functions will change to white after this color.
 
 #define CYCLE_DELAY_SECONDS 8 // How long each pattern displays in a cycle mode.
-
-// Define the type of LED strips you are using here.
-//#define WS2812_LEDS
-#define SK6812_LEDS
 
 //#define TIME_UNIT 120
 
@@ -97,6 +94,9 @@ struct fireFly
 class Patterns
 {
     Adafruit_NeoPixel mLeds;
+#ifdef USING_STROBE
+    Adafruit_NeoPixel mStrobe;
+#endif
 
     bool mTwinkle = false;
     
@@ -128,17 +128,25 @@ public:
     // Parameter 3 = pixel type FLAGS_GROUP, add together as needed:
     //   NEO_KHZ800  800 KHz bitstream (most NeoPixel products w/WS2812 LEDs)
     //   NEO_KHZ400  400 KHz (classic 'v1' (not v2) FLORA pixels, WS2811 drivers)
-    //   NEO_GRB     Pixels are wired for GRB bitstream (most NeoPixel products)
-    //   NEO_RGB     Pixels are wired for RGB bitstream (v1 FLORA pixels, not v2)
-    //   NEO_RGBW    Pixels are wired for RGBW bitstream (NeoPixel RGBW products)
+    //   NEO_GRB     Pixels are wired for GRB bitstream (WS2812)
+    //   NEO_GRBW    Pixels are wired for GRBW bitstream (SK6812)
     Patterns(uint16_t ledCount, uint8_t pin) : 
 #ifdef SK6812_LEDS
         mLeds(ledCount, pin, NEO_GRBW + NEO_KHZ800)
+    #ifdef USING_STROBE
+        , mStrobe(STROBE_LEN, LED_STROBE_PIN, NEO_GRBW + NEO_KHZ800)
+    #endif
 #else
         mLeds(ledCount, pin, NEO_GRB + NEO_KHZ800)
+    #ifdef USING_STROBE
+        , mStrobe(STROBE_LEN, LED_STROBE_PIN, NEO_GRB + NEO_KHZ800)
+    #endif
 #endif
     {
         mLeds.begin();
+    #ifdef USING_STROBE
+        mStrobe.begin();
+    #endif
 
         initComet();
 
@@ -151,6 +159,13 @@ public:
 
     uint8_t* getPixels() { return mLeds.getPixels(); }
     uint16_t getPixelBytes() { return mLeds.numPixels() * 3; }
+
+#ifdef USING_STROBE
+    Adafruit_NeoPixel& getStrobeLeds() { return mStrobe; }
+
+    uint8_t* getStrobePixels() { return mStrobe.getPixels(); }
+    uint16_t getStrobePixelBytes() { return mStrobe.numPixels() * 3; }
+#endif
 
     void initComet()
     {
@@ -204,21 +219,99 @@ public:
 
 
     // NeoPixel shortcuts
-    inline void clear(bool init=false) { mLeds.clear(); mInit = init; }
-    inline void show(unsigned long wait = 0) { mLeds.show(); delay(wait); }
+    inline void clear(bool init=false) 
+    { 
+        mLeds.clear(); 
+    #ifdef USING_STROBE
+        mStrobe.clear();
+    #endif
+        mInit = init; 
+    }
+    inline void show(unsigned long wait = 0) 
+    { 
+        mLeds.show(); 
+    #ifdef USING_STROBE
+        mStrobe.show();
+    #endif
+        delay(wait); 
+    }
 
     inline uint32_t rgbColor(uint8_t r, uint8_t g, uint8_t b, uint8_t w = 0) { return mLeds.Color(r,g,b,w); };
-    inline void setBrightness(uint8_t brightness) { mLeds.setBrightness(brightness); }
+    inline void setBrightness(uint8_t brightness) 
+    { 
+        mLeds.setBrightness(brightness); 
+    #ifdef USING_STROBE
+        mStrobe.setBrightness(brightness); 
+    #endif
+    }
  
     inline void setPixelColorAbs(uint16_t absolutePos, uint32_t color) { mLeds.setPixelColor(absolutePos, color); }
+
+    /**
+     * @brief Set the pixel color at the absolute position starting from 0.
+     * 
+     * @param absolutePos The pixel to color starting from 0.
+     * @param color 32-bit color value.
+     */
+    inline void setStrobePixelColorAbs(uint16_t absolutePos, uint32_t color) 
+    { 
+#ifdef USING_STROBE
+        mStrobe.setPixelColor(absolutePos, color); 
+#endif
+    }
     
+    /**
+     * @brief Used to set the color of one or more pixels along a strip. color and pos are the 
+     * minimum required to set a pixel. If len is provided, then a length of pixels are colored 
+     * starting from pos and ending at pos+len. To create color segments, provide the skipLen 
+     * (usually twice the colored segment size) and then provide the pixelLen (usually half the 
+     * skipLen size).
+     * 
+     * @code .cpp
+     * // Set every other pixel red on a strip 18 pixels long.
+     * setStrobePixelColorAbs(red(),0,18,2,1,false);
+     * @endcode
+     * 
+     * @param color 32-bit color value. Most significant byte is white (for RGBW pixels) or ignored (for RGB pixels), next is red, then green, and least significant byte is blue.
+     * @param pos Pixel index, starting from 0.
+     * @param len How many pixels to light starting from pos.
+     * @param skipLen Used with pixelLen to create segments of color.
+     * @param pixelLen Used with skipLen, tells how many pixels within skipLen to color, ignoring the rest.
+     * @param isEnd When TRUE, len is used as an absolution end position, otherwise an offset.
+     */
     void setPixelColorAbs(uint32_t color, uint16_t pos, uint16_t len=1, uint16_t skipLen=1, uint16_t pixelLen=1, bool isEnd=false);
+
+    /**
+     * @brief Used to set the color of one or more pixels along a strip. color and pos are the 
+     * minimum required to set a pixel. If len is provided, then a length of pixels are colored 
+     * starting from pos and ending at pos+len. To create color segments, provide the skipLen 
+     * (usually twice the colored segment size) and then provide the pixelLen (usually half the 
+     * skipLen size).
+     * 
+     * @code .cpp
+     * // Set every other pixel red on a strip 18 pixels long.
+     * setStrobePixelColorAbs(red(),0,18,2,1,false);
+     * @endcode
+     * 
+     * @param color 32-bit color value. Most significant byte is white (for RGBW pixels) or ignored (for RGB pixels), next is red, then green, and least significant byte is blue.
+     * @param pos Pixel index, starting from 0.
+     * @param len How many pixels to light starting from pos.
+     * @param skipLen Used with pixelLen to create segments of color.
+     * @param pixelLen Used with skipLen, tells how many pixels within skipLen to color, ignoring the rest.
+     * @param isEnd When TRUE, len is used as an absolution end position, otherwise an offset.
+     */
+    void setStrobePixelColorAbs(uint32_t color, uint16_t pos, uint16_t len=1, uint16_t skipLen=1, uint16_t pixelLen=1, bool isEnd=false);
+
     void setPixelColor(uint32_t color, uint16_t pos, uint16_t len=1, DirectionType dir=DirectionType::CW, uint16_t skipLen=1, uint16_t pixelLen=1, bool isEnd=false);
+
+    void setStrobePixelColor(uint32_t color, uint16_t pos, uint16_t len=1, DirectionType dir=DirectionType::CW, uint16_t skipLen=1, uint16_t pixelLen=1, bool isEnd=false);
     
 //    void setPixelColor(uint16_t relativePos, uint32_t color, uint16_t length=1, DirectionType dir=DirectionType::CW, uint16_t skip=1, uint16_t litPixels=1);
     
     void setRingColor(uint32_t color);
-    
+
+    void setStrobeColor(uint32_t color);
+
     void flash(uint8_t wait, uint32_t color);
 
     bool twinkle() { mTwinkle = !mTwinkle; return mTwinkle; }
